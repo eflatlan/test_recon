@@ -19,7 +19,7 @@
     },
     "internal-dpl-injected-dummy-sink": "",
     "HMPClustersWriter": {
-        "outfile": "hmpclus15.root",
+        "outfile": "hmpclus16.root",
         "output-dir": "none",
         "treename": "o2sim",
         "treetitle": "o2sim",

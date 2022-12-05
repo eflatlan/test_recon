@@ -185,6 +185,11 @@ void readClusters(char* filename, int nEvent)
   c2->SaveAs(("clusterCharge_"+ runNumber+ "_.eps").c_str());
   c3->SaveAs(("mipClustesCharge_"+  runNumber+ "_.eps").c_str());
   c4->SaveAs(("clusterSize_" + runNumber+ "_.eps").c_str());
+
+  c1->SaveAs(("clusterMap_" +  runNumber + "_.png").c_str());
+  c2->SaveAs(("clusterCharge_"+ runNumber+ "_.png").c_str());
+  c3->SaveAs(("mipClustesCharge_"+  runNumber+ "_.png").c_str());
+  c4->SaveAs(("clusterSize_" + runNumber+ "_.png").c_str());
 }    
    
 

@@ -1,0 +1,22 @@
+{
+    "internal-dpl-clock": "",
+    "HMP-Clusterization": {
+        "sigma-cut": "",
+        "hmpid-digit-infile": "hmp_dig_66_130.root",
+        "input-dir": ".\/",
+        "orbit-offset-enumeration": "0",
+        "orbit-multiplier-enumeration": "0",
+        "start-value-enumeration": "0",
+        "end-value-enumeration": "-1",
+        "step-value-enumeration": "1"
+    },
+    "HMPClustersWriter": {
+        "outfile": "hmp_clu_66_130.root",
+        "output-dir": "none",
+        "treename": "o2sim",
+        "treetitle": "o2sim",
+        "nevents": "1",
+        "autosave": "-1",
+        "terminate": "process"
+    }
+}

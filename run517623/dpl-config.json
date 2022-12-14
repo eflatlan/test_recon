@@ -1,19 +1,22 @@
 {
     "internal-dpl-clock": "",
-    "tf-reader": {
+    "HMP-Clusterization": {
+        "sigma-cut": "",
+        "hmpid-digit-infile": "hmpDig1250_2_250TFs.root",
+        "input-dir": ".\/",
         "orbit-offset-enumeration": "0",
         "orbit-multiplier-enumeration": "0",
         "start-value-enumeration": "0",
         "end-value-enumeration": "-1",
         "step-value-enumeration": "1"
     },
-    "HMP-RawStreamDecoder": {
-        "get-results-statistics": "true",
-        "result-file": "\/tmp\/hmpRawDecodeResults",
-        "fast-decode": "true"
-    },
-    "internal-dpl-injected-dummy-sink": "",
-    "HMP-DigitsToRoot": {
-        "out-file": "hmpDig1250_end_tf.root"
+    "HMPClustersWriter": {
+        "outfile": "hmpClus1250_250TF.root",
+        "output-dir": "none",
+        "treename": "o2sim",
+        "treetitle": "o2sim",
+        "nevents": "1",
+        "autosave": "-1",
+        "terminate": "process"
     }
 }

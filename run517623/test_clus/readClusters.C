@@ -61,7 +61,7 @@ void readClusters(int nEvents)
      hSize[i]->SetYTitle("Entries");               
   }
 
-  //changeFont();			     // specify folder to save files in
+  changeFont();			     // specify folder to save files in
   //SaveFolder("clusterChambers");   // apply custom canvas figure options
   
   auto folderName = (gSystem->GetWorkingDirectory());
@@ -79,13 +79,9 @@ void readClusters(int nEvents)
   
   //TCanvas *c1 = new TCanvas("c1",("Cluster-Map " + runNumber).c_str(),1200,1200); 	
   //TCanvas *c2 = new TCanvas("c2", ("Cluster-Charge " + runNumber).c_str(),1200,1200); 	
-  TCanvas *c3 = new TCanvas("c3", ("MIP Cluster-Charge " + runNumber).c_str(),1200,1200); 	
-  TCanvas *c4 = new TCanvas("c4", ("Cluster-Size " + runNumber).c_str(),1200,1200);  
-  /*
-  TCanvas *c1 = new TCanvas("c1","c1",1000,800); 
-  TCanvas *c2 = new TCanvas("c2","c2",1000,800); 
-  TCanvas *c3 = new TCanvas("c3","c3",1000,800); 
-  TCanvas *c4 = new TCanvas("c4","c4",1000,800); */ 
+  TCanvas *c3 = new TCanvas("c3", ("MIP Cluster-Charge " + runNumber).c_str(),1000,800); 	
+  TCanvas *c4 = new TCanvas("c4", ("Cluster-Size " + runNumber).c_str(),1000,800);  
+
    
   Int_t pos[] = {9,8,6,5,4,2,1};
   
@@ -184,15 +180,10 @@ void readClusters(int nEvents)
   //Printf("Number of triggers = %i", nTotTriggers);     
   //Printf(
 
-  //c1->SaveAs(("__clusterMap_" +  runNumber + "_.eps").c_str());
-  //c2->SaveAs(("__clusterCharge_"+ runNumber+ "_.eps").c_str());
-  c3->SaveAs(("__mipClustesCharge_"+  runNumber+ "_.eps").c_str());
-  c4->SaveAs(("__clusterSize_" + runNumber+ "_.eps").c_str());
-
-  //c1->SaveAs(("__clusterMap_" +  runNumber + "_.png").c_str());
-  //c2->SaveAs(("__clusterCharge_"+ runNumber+ "_.png").c_str());
-  c3->SaveAs(("__mipClustesCharge_"+  runNumber+ "_.png").c_str());
-  c4->SaveAs(("__clusterSize_" + runNumber+ "_.png").c_str());
+  c3->SaveAs(("__clusterSize_" + runNumber+ "_.eps").c_str());
+  c4->SaveAs(("clusterSize_" + runNumber+ "_.eps").c_str());
+  c3->SaveAs(("mipClustesCharge_"+  runNumber+ "_.png").c_str());
+  c4->SaveAs(("clusterSize_" + runNumber+ "_.png").c_str());
 }    
    
 
@@ -202,7 +193,7 @@ void readClusters(int nEvents)
 void changeFont()
 {
   TStyle* canvasStyle = new TStyle("canvasStyle","Canvas Root Styles");
-  canvasStyle->SetPalette(1,0);
+  ///canvasStyle->SetPalette(1,0);
   canvasStyle->SetTitleSize(0.085,"xy");    // size of axis title font
   canvasStyle->SetTitleFont(22,"xz");       // font option
   canvasStyle->SetTitleFontSize(0.1);       // size of canvas-title
@@ -215,7 +206,7 @@ void changeFont()
   canvasStyle->SetLabelFont(22,"xyz");
   canvasStyle->SetLabelSize(0.085,"xyz");   // size of axis value font
   // canvas 
-  canvasStyle->SetCanvasColor(0); 
+  //canvasStyle->SetCanvasColor(0); 
   canvasStyle->SetCanvasBorderMode(0);
   canvasStyle->SetCanvasBorderSize(0);
   //set margins

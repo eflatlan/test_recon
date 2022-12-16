@@ -2,7 +2,7 @@
     "internal-dpl-clock": "",
     "HMP-Clusterization": {
         "sigma-cut": "",
-        "hmpid-digit-infile": "hmpDig1250_2_250TFs.root",
+        "hmpid-digit-infile": "hmpDig1250_750TFs.root",
         "input-dir": ".\/",
         "orbit-offset-enumeration": "0",
         "orbit-multiplier-enumeration": "0",
@@ -11,7 +11,7 @@
         "step-value-enumeration": "1"
     },
     "HMPClustersWriter": {
-        "outfile": "hmpClus1250_250TF.root",
+        "outfile": "hmpClus1250_750TFs.root",
         "output-dir": "none",
         "treename": "o2sim",
         "treetitle": "o2sim",

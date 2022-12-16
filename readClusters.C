@@ -57,6 +57,8 @@
 
 void readClusters(int nEvents)
 { 
+
+
   TH1F *hCharge[7], *hMipCharge[7], *hSize[7];
   TH2F *hMap[7];
       
@@ -81,9 +83,11 @@ void readClusters(int nEvents)
 
   //changeFont();			     // specify folder to save files in
   //SaveFolder("clusterChambers");   // apply custom canvas figure options
-  
+
   auto folderName = (gSystem->GetWorkingDirectory());
   auto gwd = gSystem->GetWorkingDirectory();
+
+  Printf("RunNumber %s", gSystem->GetDirName());
 
   auto runNumber = (gwd.substr(gwd.length()-9, gwd.length()));
   /*
@@ -149,7 +153,7 @@ void readClusters(int nEvents)
     
     for(int j = 0; j < clusterSize; j++) {
       
-      pClu = (o2::hmpid::Cluster*)&clusters->at(j);
+      pClu = (o2::hmpid::Cluster*)&clusters[j];
 
       module = pClu->ch();
                              
@@ -166,7 +170,7 @@ void readClusters(int nEvents)
    
    for(int i = 0; i < triggerSize; i++) {
      oneEventClusters.clear();
-     pTgr = static_cast<o2::hmpid::Trigger*> (&trigger->at(i));
+     pTgr = static_cast<o2::hmpid::Trigger*> (&trigger[i]);
 
      const int pTrgrFirst = pTgr->getFirstEntry();
      const int pTrgrLast = pTgr->getLastEntry();
@@ -212,70 +216,6 @@ void readClusters(int nEvents)
 }    
    
 
-
-
-// apply custom-made canvas options 
-void changeFont()
-{
-  TStyle* canvasStyle = new TStyle("canvasStyle","Canvas Root Styles");
-  canvasStyle->SetPalette(1,0);
-  canvasStyle->SetTitleSize(0.085,"xy");    // size of axis title font
-  canvasStyle->SetTitleFont(22,"xz");       // font option
-  canvasStyle->SetTitleFontSize(0.1);       // size of canvas-title
-  canvasStyle->SetTitleOffset(.825,"y");    //  y-axis title-offset from axis
-  canvasStyle->SetTitleOffset(1,"z"); 
-  canvasStyle->SetTitleOffset(.95,"x");
-  canvasStyle->SetTitleX(.25);              // set canvas-title position
-  // labels 
-  canvasStyle->SetLabelOffset(0.005,"y"); 
-  canvasStyle->SetLabelFont(22,"xyz");
-  canvasStyle->SetLabelSize(0.085,"xyz");   // size of axis value font
-  // canvas 
-  canvasStyle->SetCanvasColor(0); 
-  canvasStyle->SetCanvasBorderMode(0);
-  canvasStyle->SetCanvasBorderSize(0);
-  //set margins
-  canvasStyle->SetPadBottomMargin(0.18);
-  canvasStyle->SetPadTopMargin(0.05);
-  canvasStyle->SetPadLeftMargin(0.13);
-  canvasStyle->SetPadRightMargin(0.02);
-  gROOT->SetStyle("canvasStyle"); 
-}
-
-void SaveFolder(string inpFile)
-{
-	 char* createdFolder;
-	 auto time = std::chrono::system_clock::now();
-	 std::time_t time_t = std::chrono::system_clock::to_time_t(time);
-	 auto c_time = std::ctime(&time_t);
-	
-	 // Allocate memory for char* createdFolder 
-	 int  pathLen = strlen(c_time);
-	 pathLen = strlen(gSystem->pwd())+strlen(inpFile.c_str());
-	 int numOfSigns = 2; // allocate for - and /
-	 createdFolder = (char *)calloc(pathLen+numOfSigns+1, sizeof(char));
-
-	 // Copy Base-directory into empty createdFolder 
-	 strcpy(createdFolder,gSystem->pwd());
-	 // add hyphen to the Folder-name  
-	 strcat(createdFolder,"/"); 
-	 // Add name of read file to Folder-name
-	 strcat(createdFolder,inpFile.c_str()); 
-	 // add - to the Folder-name
-	 strcat(createdFolder,"-");
-	 // append current time to the Folder-name
-	 strcat(createdFolder,c_time); 
-
-	 // Make new Directory from the newly 
-	 //created char* createdFolder
-	 gSystem->MakeDirectory(createdFolder);  
-		
-	 // Move to directory such that new
-	 // canvas-files will be saved here  
-	 gSystem->ChangeDirectory(createdFolder);  
-		
-}
-
 //********************************************************************************************************************
 
 void readDigits(char* filename, int nEvent)
@@ -286,11 +226,7 @@ void readDigits(char* filename, int nEvent)
   
   // Initialize an array of TH1F-pointers 
   // (TH1=1D histogram, F specifies Float-values )
-  TH1F *hCharge[7];   	//  charge of digits
-  TH1F *h_xCoord[7];	  //  number of digits per x-coordinate 
-  TH1F *h_yCoord[7];    //  number of digits per y-coordinate
-
-  // Initialize an array of TH2F-pointers 
+  TH1F *hCharge[7], *h_xCoord[7], *h_yCoord[7];    //  number of digits per y-coordinate
   TH2F *hMap[7];	// 2d map of digits
       
   // Label the histograms

@@ -55,6 +55,18 @@
   void strToFloatsSplit(std::string s, std::string delimiter, float* res,
                         int maxElem = 7);
 
+#include <string>
+#include <iostream>
+#include <filesystem>
+namespace fs = std::filesystem;
+
+int main()
+{
+    std::string path = "/path/to/directory";
+    for (const auto & entry : fs::directory_iterator(path))
+        std::cout << entry.path() << std::endl;
+}
+
 void readClusters(int nEvents)
 { 
 

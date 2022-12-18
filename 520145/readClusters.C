@@ -29,6 +29,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <string>
+#include <iterator>
+#include <boost/iterator/zip_iterator.hpp>
+//#include <redi/zip.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #endif
@@ -42,7 +45,7 @@ std::vector<o2::hmpid::Digit> mDigitsFromFile,
 std::vector<o2::hmpid::Trigger> mTriggersFromFile,
 *mTriggersFromFilePtr = &mTriggersFromFile;
 // void SaveFolder(string inpFile);
-// void changeFont();
+void changeFont();
 
 vector<string> dig2Clus(const std::string &fileName, vector<Cluster>& clusters, vector<Trigger> clusterTriggers);
 bool mReadFile = false;
@@ -51,6 +54,7 @@ float mSigmaCut[7] = {4, 4, 4, 4, 4, 4, 4};
 
 std::unique_ptr<TFile> mFile; ///< input file containin the tree
 std::unique_ptr<TTree> mTree; ///< input tree
+
 
 
 std::unique_ptr<o2::hmpid::Clusterer> mRec; // ef: changed to smart-pointer
@@ -67,7 +71,7 @@ void strToFloatsSplit(std::string s, std::string delimiter, float *res,
 namespace fs = std::filesystem;
 
 void readClusters(int nEvents) {
-
+  changeFont();
   auto folderName = (gSystem->GetWorkingDirectory());
 
   auto gwd = gSystem->GetWorkingDirectory();
@@ -135,11 +139,11 @@ void readClusters(int nEvents) {
     hSize[i]->SetYTitle("Entries");
   }
 
-  std::unique_ptr<TCanvas> c1, c2, c3, c4;
-  c1.reset(new TCanvas(("Cluster-Map " + fname).c_str(), ("Cluster-Map " + fname).c_str(), 1200, 1200));
-  c2.reset(new TCanvas(("Cluster-Charge " + fname).c_str(), ("Cluster-Charge " + fname).c_str(), 1200, 1200));
-  c3.reset(new TCanvas(("MIP Cluster-Charge " + fname).c_str(), ("MIP Cluster-Charge " + fname).c_str(),1200, 1200));  
-  c4.reset(new TCanvas(("Cluster-Size " + fname).c_str(), ("Cluster-Size " + fname).c_str(), 1200, 1200));
+  std::array<std::unique_ptr<TCanvas>, 4> canvas;
+  (canvas[0]).reset(new TCanvas(("Cluster-Map " + fname).c_str(), ("Cluster-Map " + fname).c_str(), 1200, 1200));
+  (canvas[1]).reset(new TCanvas(("Cluster-Charge " + fname).c_str(), ("Cluster-Charge " + fname).c_str(), 1200, 1200));
+  (canvas[2]).reset(new TCanvas(("MIP Cluster-Charge " + fname).c_str(), ("MIP Cluster-Charge " + fname).c_str(),1200, 1200));  
+  (canvas[3]).reset(new TCanvas(("Cluster-Size " + fname).c_str(), ("Cluster-Size " + fname).c_str(), 1200, 1200));
 
 
   Int_t nTotTriggers = 0;
@@ -182,48 +186,54 @@ void readClusters(int nEvents) {
   
   //auto folderName = fname.c_str();
   std::array<std::unique_ptr<TPaveText>, 4> tpvs;
+
   for(auto& tpv: tpvs){
     tpv.reset(new TPaveText(0.1, .2, .95, .8));
+  }
+
+  tpvs[1]->AddText("Clusters Charge");
+  tpvs[2]->AddText("MIP Clusters Charge");
+  tpvs[3]->AddText("Clusters Size");
+
+  for(auto& tpv: tpvs){
     tpv->AddText(Form("Run%s", fname.c_str()));
     tpv->AddText(fileInfo[0].c_str());
     tpv->AddText(fileInfo[1].c_str());
     tpv->AddText(fileInfo[2].c_str());
   }
-  tpvs[1]->AddText("Clusters Charge");
-  tpvs[2]->AddText("MIP Clusters Charge");
-  tpvs[3]->AddText("Clusters Size");
+  
+  for(int i = 0; i < tpvs.size(); i++){
+    canvas[i]->Divide(3, 3); 
+    canvas[i]->cd(3);
+    tpvs[i]->Draw();
+  }
 
+  /*BOOST_FOREACH(boost::tie(c,t), boost::combine(canvas, tpvs)){
+    c->Divide(3, 3); 
+    c->cd(3);
+    t->Draw();
+  }*/
 
-  c1->Divide(3, 3);
-  c2->Divide(3, 3);
-  c3->Divide(3, 3);
-  c4->Divide(3, 3);
-
-  c1->cd(3); tpvs[0]->Draw();
-  c2->cd(3); tpvs[1]->Draw();
-  c3->cd(3); tpvs[2]->Draw();
-  c4->cd(3); tpvs[3]->Draw();
-
-  const Int_t posArr[] = {9, 8, 6, 5, 4, 2, 1};
+  const int posArr[] = {9, 8, 6, 5, 4, 2, 1};
   for (int iCh = 0; iCh < sizeof(posArr); iCh++) {
     const auto& pos = posArr[iCh];
-      c1->cd(pos);
-      hMap[iCh]->SetMarkerStyle(3);
-      hMap[iCh]->Draw();
+    canvas[0]->cd(pos);
+    hMap[iCh]->SetMarkerStyle(3);
+    hMap[iCh]->Draw();
 
-      c2->cd(pos);
-      hCharge[iCh]->Draw();
+    canvas[1]->cd(pos);
+    hCharge[iCh]->Draw();
 
-      c3->cd(pos);
-      hMipCharge[iCh]->Fit("landau");
-      hMipCharge[iCh]->Draw();
+    canvas[2]->cd(pos);
+    hMipCharge[iCh]->Fit("landau");
+    hMipCharge[iCh]->Draw();
 
-      c4->cd(pos);
-      hSize[iCh]->Draw();
+    canvas[3]->cd(pos);
+    hSize[iCh]->Draw();
   }
   // Printf("Number of triggers = %i", nTotTriggers);
   // Printf(
-
+  /*
   c1->SaveAs(("clusterMap_" + fname + "_.eps").c_str());
   c2->SaveAs(("clusterCharge_" + fname + "_.eps").c_str());
   c3->SaveAs(("mipClustesCharge_" + fname + "_.eps").c_str());
@@ -232,75 +242,100 @@ void readClusters(int nEvents) {
   c1->SaveAs(("clusterMap_" + fname + "_.png").c_str());
   c2->SaveAs(("clusterCharge_" + fname + "_.png").c_str());
   c3->SaveAs(("mipClustesCharge_" + fname + "_.png").c_str());
-  c4->SaveAs(("clusterSize_" + fname + "_.png").c_str());
+  c4->SaveAs(("clusterSize_" + fname + "_.png").c_str()); */
 }
 
 //********************************************************************************************************************
 
 void readDigits(char *filename, int nEvent) {
-  TFile *fileDigits = TFile::Open(filename);
+  std::unique_ptr<TFile> fileDigits;
+  fileDigits.reset(static_cast<TFile*>(TFile::Open(filename)));
   // Cast to TTree*, get tree by key "o2sim"
-  TTree *treeDigits = (TTree *)fileDigits->Get("o2sim");
 
-  // Initialize an array of TH1F-pointers
-  // (TH1=1D histogram, F specifies Float-values )
-  TH1F *hCharge[7], *h_xCoord[7],
-      *h_yCoord[7]; //  number of digits per y-coordinate
-  TH2F *hMap[7];    // 2d map of digits
+  if(!fileDigits){
+    Printf("Problem fetching file %s !", filename);
+    Printf("Could not get Digits-file, will return!");
+    return;
+  }
+
+  std::unique_ptr<TTree> treeDigits;
+  treeDigits.reset((TTree*)fileDigits->Get("o2sim"));
+  if(!treeDigits){
+    treeDigits.reset((TTree *)fileDigits->Get("o2hmp"));
+  }
+
+  if(!treeDigits){
+    Printf("Problem fetching Tree in file %s !", filename);
+    Printf("Could not get Digits-Tree, will return!");
+    return;
+  }
+
+
+  std::array<std::unique_ptr<TH1F>, 7> h_xCoord, h_yCoord, hCharge;
+  std::array<std::unique_ptr<TH2F>, 7> hMap;
 
   // Label the histograms
   for (int i = 0; i < 7; i++) {
     // define element number i in the pointer-array
 
-    hMap[i] = new TH2F(Form("Digits Map %i", i), Form("Digits Map %i", i), 160,
-                       0, 159, 144, 0, 143);
+    hMap[i].reset(new TH2F(Form("Digits Map %i", i), Form("Digits Map %i", i), 160,
+                       0, 159, 144, 0, 143));
     hMap[i]->SetXTitle("pad X [cm]");
     hMap[i]->SetYTitle("pad Y [cm]");
 
-    hCharge[i] = new TH1F(Form("Digits Charge %i", i),
-                          Form("Digits Charge %i", i), 2000, 100., 2100.);
+    hCharge[i].reset(new TH1F(Form("Digits Charge %i", i),
+                          Form("Digits Charge %i", i), 2000, 100., 2100.));
     hCharge[i]->SetXTitle("Charge (ADC channel)");
     hCharge[i]->SetYTitle("Entries");
 
-    h_xCoord[i] =
-        new TH1F(Form("Digits X-location Histogram %i", i),
-                 Form("Digits X-location Histogram %i", i), 2000, 10., 159.);
+    h_xCoord[i].reset(new TH1F(Form("Digits X-location Histogram %i", i),
+                      Form("Digits X-location Histogram %i", i), 2000, 10., 159.));
     h_xCoord[i]->SetXTitle("X [cm]");
     h_xCoord[i]->SetYTitle("Entries");
 
-    h_yCoord[i] =
-        new TH1F(Form("Digits Y-location Histogram %i", i),
-                 Form("Digits Y-location Histogram %i", i), 2000, 10., 144.);
+    h_yCoord[i].reset(new TH1F(Form("Digits Y-location Histogram %i", i),
+                 Form("Digits Y-location Histogram %i", i), 2000, 10., 144.));
     h_yCoord[i]->SetXTitle("Y [cm]");
     h_yCoord[i]->SetYTitle("Entries");
   }
 
-  // changeFont();		         // apply custom canvas figure options
+  // 		         // apply custom canvas figure options
   // SaveFolder("digitChambers"); // specify folder to save files in
 
   // Define canvases for plotting the figures
-  TCanvas *c1 = new TCanvas("c1", "c1", 2000, 1200);
-  TCanvas *c2 = new TCanvas("c2", "c2", 2000, 1200);
-  TCanvas *c3 = new TCanvas("c3", "c3", 2000, 1200);
-  TCanvas *c4 = new TCanvas("c4", "c4", 2000, 1200);
+  std::unique_ptr<TCanvas> c1, c2, c3, c4;
+
+  c1.reset( new TCanvas("c1", "c1", 2000, 1200)); c1->Divide(3, 3);
+  c2.reset( new TCanvas("c2", "c2", 2000, 1200)); c2->Divide(3, 3);
+  c3.reset( new TCanvas("c3", "c3", 2000, 1200)); c3->Divide(3, 3);
+  c4.reset( new TCanvas("c4", "c4", 2000, 1200)); c4->Divide(3, 3);
+
 
   // Define positions for the plots for the chambers in the canvases
-  Int_t pos[] = {9, 8, 6, 5, 4, 2, 1};
+  const int posArr[] = {9, 8, 6, 5, 4, 2, 1};
 
-  Trigger *pTgr;  // pointer to Trigger-object
-  Digit *pDig;    // pointer to Digit-object
-  Digit *pDigEvt; // pointer to Digit-object
+  std::unique_ptr<Trigger> pTgr;  // pointer to Trigger-object
+  std::unique_ptr<Digit> pDig;    // pointer to Digit-object
+  std::unique_ptr<Digit> pDigEvt; // pointer to Digit-object
   Digit digit;    // declaration of digit-object
 
-  vector<Digit> *digits = nullptr; //  vector of digit-pointers
-  vector<Digit> oneEventDigits;    //  vector of Digit-objects
-  vector<Trigger> *trigger =
-      nullptr; //  vector of trigger-pointers
 
-  // specify branches of tree to read from
-  // (const char* branchname, void* adress)
-  treeDigits->SetBranchAddress("HMPDigit", &digits);
-  treeDigits->SetBranchAddress("InteractionRecords", &trigger);
+  vector<Digit> *pDigits = nullptr;
+  vector<Digit> oneEventDigits;
+  vector<Trigger> *pTriggers = nullptr;
+
+  if ((mTree->GetBranchStatus("HMPDigit")) == 1) {
+    mTree->SetBranchAddress("HMPDigit", &pDigits);
+  } else if ((mTree->GetBranchStatus("HMPIDDigits")) == 1) {
+    mTree->SetBranchAddress("HMPIDDigits", &pDigits);
+  } else {
+    throw std::runtime_error(
+        "HMPID DigitToClusterSpec::init() : Error in branches!");
+  }
+  treeDigits->SetBranchAddress("InteractionRecords", &pTriggers);
+
+  vector<Digit> digits = *pDigits;
+  vector<Trigger> triggers = *pTriggers;
 
   // Number of entries in tree
   const int treeDigSize = treeDigits->GetEntries();
@@ -309,71 +344,64 @@ void readDigits(char *filename, int nEvent) {
   treeDigits->GetEntry(0);
 
 
-  const int digSize = digits->size();
+  const int digSize = pDigits->size();
   Printf("digit size = %i",digSize);
-
-  // initialize padhit x and y coordinates,
-  // and module (i.e.) chamber-number
   int padChX = 0, padChY = 0, module = 0;
 
   // Loop through digits in file
-  for (unsigned int j = 0; j < digSize; j++) {
 
-    pDig = static_cast<Digit*> (&digits->at(j));
-    o2::hmpid::Digit::pad2Absolute(pDig->getPadID(), &module, &padChX, &padChY);
-    hCharge[module]->Fill(pDig->getQ()); // getQ gets charge
+  for(const auto& dig : digits){
+    Digit::pad2Absolute(dig.getPadID(), &module, &padChX, &padChY);
+    Digit::pad2Absolute(dig.getPadID(), &module, &padChX, &padChY);
+    hCharge[module]->Fill(dig.getQ()); // getQ gets charge
     h_xCoord[module]->Fill(padChX);      // fill x-coordinate
     h_yCoord[module]->Fill(padChY);      // fill y-coordinate
   }
   
-  const int triggerSize = static_cast<int>(trigger->size());
+  const int triggerSize = static_cast<int>(pTriggers->size());
   Printf("trigger size from digits = %i", triggerSize);
 
   // Loop through triggers
-  for (int i = 0; i < triggerSize; i++) {
-
+  //for (int i = 0; i < triggerSize; i++) {
+  int i = 0;
+  for (const auto& trg : triggers) {
     oneEventDigits.clear(); // empty vector
-    pTgr = (o2::hmpid::Trigger *)&trigger->at(i);
 
-    for (int j = pTgr->getFirstEntry(); j <= pTgr->getLastEntry(); j++) {
-      digit = (o2::hmpid::Digit)digits->at(j);
+    for (int j = trg.getFirstEntry(); j <= trg.getLastEntry(); j++) {
+      digit = static_cast<Digit>(digits[j]);
       oneEventDigits.push_back(digit);
     }
 
     if (i == nEvent) {
-      const int oneEventDigSize = static_cast<int>(oneEventDigits.size());
-      for (unsigned int k = 0; k < oneEventDigSize; k++) {
+      //const int oneEventDigSize = static_cast<int>(oneEventDigits.size());
+      //for (int k = 0; k < oneEventDigSize; k++) {
+      for (const auto& digEvt : oneEventDigits) {
 
-        pDigEvt = (o2::hmpid::Digit *)&oneEventDigits.at(k);
-
-        Digit::pad2Absolute(pDigEvt->getPadID(), &module, &padChX,
+        Digit::pad2Absolute(digEvt.getPadID(), &module, &padChX,
                                        &padChY);
-
-        hMap[module]->Fill(padChX, padChY, pDigEvt->getQ());
+        hMap[module]->Fill(padChX, padChY, digEvt.getQ());
       }
     } // end if
+
+    i++;
   }
-  // Divide canvases into 3x3
-  c1->Divide(3, 3);
-  c2->Divide(3, 3);
-  c3->Divide(3, 3);
-  c4->Divide(3, 3);
 
+  int pos;
   for (int iCh = 0; iCh < 7; iCh++) {
-
-    c2->cd(pos[iCh]);
+    pos = posArr[iCh];
+    c2->cd(pos);
     hCharge[iCh]->SetStats(false);
     hCharge[iCh]->Draw();
 
-    c1->cd(pos[iCh]);
+    c1->cd(pos);
     hMap[iCh]->SetStats(false);
     hMap[iCh]->Draw("Colz");
 
-    c3->cd(pos[iCh]);
+    c3->cd(pos);
     h_xCoord[iCh]->SetStats(false);
     h_xCoord[iCh]->Draw();
 
-    c4->cd(pos[iCh]);
+    c4->cd(pos);
     h_yCoord[iCh]->SetStats(false);
     h_yCoord[iCh]->Draw();
   }
@@ -499,3 +527,28 @@ void initFileIn(const std::string &filename) {
   mTree->SetBranchAddress("InteractionRecords", &mTriggersFromFilePtr);
   mTree->Print("toponly");
 }
+
+
+
+
+
+
+
+
+
+void changeFont()
+{
+  std::unique_ptr<TStyle> mStyle; 
+  mStyle.reset(new TStyle("canvasStyle", "Canvas Root Styles"));
+  mStyle->SetTitleSize(.075, "xz");
+  mStyle->SetTitleFontSize(.1);
+  mStyle->SetTitleFont(18, "xz");
+  mStyle->SetLabelOffset(0.004, "y");
+  mStyle->SetLabelFont(18, "xyz");
+  mStyle->SetLabelSize(.085, "xyz");
+  gROOT->SetStyle("canvasStyle");
+}
+
+
+
+

@@ -125,23 +125,27 @@ void readClusters(int nEvents) {
 
   for (int i = 0; i < 7; i++) {
 
-    const char* canString = Form("Chamber %i", i);
-    hMap[i].reset(new TH2F(canString, canString, 160, 0, 159, 144, 0, 143));
+    const char* canStringhMap = Form("Map %i", i);
+    hMap[i].reset(new TH2F(canStringhMap, canStringhMap, 160, 0, 159, 144, 0, 143));
     hMap[i]->SetXTitle("X (cm)");
     hMap[i]->SetYTitle("Y (cm)");
 
-    hCharge[i].reset(new TH1F(canString, canString, 2000, 100., 2100.));
+
+    const char* canStringCharge = Form("Charge %i", i);
+    hCharge[i].reset(new TH1F(canStringCharge, canStringCharge, 2000, 100., 2100.));
     hCharge[i]->SetXTitle("Charge (ADC channel)");
     hCharge[i]->SetYTitle("Entries");
 
-    hMipCharge[i].reset(new TH1F(canString, canString, 50, 200., 2200.));
+    const char* canStringMip = Form("MIP-Charge %i", i);
+    hMipCharge[i].reset(new TH1F(canStringMip, canStringMip, 50, 200., 2200.));
     hMipCharge[i]->SetXTitle("Charge (ADC channel)");
     hMipCharge[i]->SetYTitle("Entries/40 ADC");
     //hMipCharge[i]->SetLineColor(kBlack);
     hMipCharge[i]->SetStats(kTRUE);
     //hMipCharge[i]->StatOverflows(kTRUE);
 
-    hSize[i].reset(new TH1F(canString, canString, 20, 0., 20.));
+    const char* canStringSize = Form("Size %i", i);
+    hSize[i].reset(new TH1F(canStringSize, canStringSize, 20, 0., 20.));
 
     hSize[i]->SetXTitle("Cluster size");
     hSize[i]->SetYTitle("Entries");
@@ -564,17 +568,17 @@ void changeFont()
   gStyle->SetStatH(0.25);
   gStyle->SetStatFontSize(0.095);
 
-  gStyle->SetLegendTextSize(0.055);
+  gStyle->SetLegendTextSize(0.035);//
 
-  gStyle->SetTitleSize(.04, "xzy");//.045
-  gStyle->SetTitleOffset(.85, "xzy");
-  gStyle->SetTitleOffset(1, "y");
+  gStyle->SetTitleSize(.04, "xzy");
+  gStyle->SetTitleOffset(.95, "xzy");
+  gStyle->SetTitleOffset(1.15, "y");//1.05
   gStyle->SetTitleFontSize(.045);
   //gStyle->SetTitleFont(16, "xz");
   
-  gStyle->SetLabelOffset(0.005, "y");//.005
+  gStyle->SetLabelOffset(0.005, "y");
   gStyle->SetLabelFont(22, "xyz");
-  gStyle->SetLabelSize(.085, "xyz");
+  gStyle->SetLabelSize(.0425, "xyz"); //.055 // verdi av akser
 
 
   //mStyle->SetStyle("canvasStyle");

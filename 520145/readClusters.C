@@ -124,32 +124,31 @@ void readClusters(int nEvents) {
   
 
   for (int i = 0; i < 7; i++) {
-    hMap[i].reset(new TH2F(Form("%i Clusters Map %i", fname, i),
-                  Form("%i Cluster Map %i", fname, i), 160, 0, 159, 144, 0, 143));
+
+    const char* canString = Form("Chamber %i", i);
+    hMap[i].reset(new TH2F(canString, canString, 160, 0, 159, 144, 0, 143));
     hMap[i]->SetXTitle("X (cm)");
     hMap[i]->SetYTitle("Y (cm)");
 
-    hCharge[i].reset(new TH1F(Form("%i Clusters Charge%i", fname, i),
-                     Form("%i Cluster Charge%i", fname, i), 2000, 100., 2100.));
+    hCharge[i].reset(new TH1F(canString, canString, 2000, 100., 2100.));
     hCharge[i]->SetXTitle("Charge (ADC channel)");
     hCharge[i]->SetYTitle("Entries");
 
-    hMipCharge[i].reset(new TH1F(Form("%i Mip Cluster Charge%i", fname,i), 
-                        Form("%i Mip Cluster Charge %i", fname,i ), 50, 200., 2200.));
+    hMipCharge[i].reset(new TH1F(canString, canString, 50, 200., 2200.));
     hMipCharge[i]->SetXTitle("Charge (ADC channel)");
     hMipCharge[i]->SetYTitle("Entries/40 ADC");
     //hMipCharge[i]->SetLineColor(kBlack);
     hMipCharge[i]->SetStats(kTRUE);
     //hMipCharge[i]->StatOverflows(kTRUE);
 
-    hSize[i].reset(new TH1F(Form("%i Cluster Size%i", fname, i),
-                   Form("%i Cluster Size%i", fname, i), 20, 0., 20.));
+    hSize[i].reset(new TH1F(canString, canString, 20, 0., 20.));
 
     hSize[i]->SetXTitle("Cluster size");
     hSize[i]->SetYTitle("Entries");
   }
 
-  std::array<std::unique_ptr<TCanvas>, 4> canvas;
+  std::array<std::unique_ptr<TCanvas>, 4> canvas;  
+  
   (canvas[0]).reset(new TCanvas(Form("Cluster-Map %i",fname), Form("Cluster-Map %i",fname), 1200, 1200));
   (canvas[1]).reset(new TCanvas(Form("Cluster-Charge %i",fname), Form("Cluster-Charge %i",fname), 1200, 1200));
   (canvas[2]).reset(new TCanvas(Form("MIP Cluster-Charge %i",fname), Form("MIP Cluster-Charge %i",fname),1200, 1200));  
@@ -206,7 +205,7 @@ void readClusters(int nEvents) {
   //const char* runLabel = Form("%i  Duration = %s", fname, f1);
   const char* runLabel = Form("%i", fname);
   for(auto& tpv: tpvs){
-    tpv.reset(new TPaveText(0.025, .025, .925, .925));
+    tpv.reset(new TPaveText(0.05, .05, .9, .9));
     tpv->AddText(runLabel);
   }
 
@@ -559,22 +558,23 @@ void changeFont()
   */ 
 
   gStyle->SetOptStat("kirme");
-  gStyle->SetStatX(0.975);
-  gStyle->SetStatY(0.975);
-  gStyle->SetStatW(0.325);
-  gStyle->SetStatH(0.3);
+  gStyle->SetStatX(0.925);
+  gStyle->SetStatY(0.925);
+  gStyle->SetStatW(0.3);
+  gStyle->SetStatH(0.25);
   gStyle->SetStatFontSize(0.095);
 
-  gStyle->SetLegendTextSize(0.035);
+  gStyle->SetLegendTextSize(0.055);
 
-  gStyle->SetTitleSize(.055, "xzy");
-  gStyle->SetTitleOffset(.095, "xzy");
-  gStyle->SetTitleFontSize(.055);
-  gStyle->SetTitleFont(16, "xz");
+  gStyle->SetTitleSize(.04, "xzy");//.045
+  gStyle->SetTitleOffset(.85, "xzy");
+  gStyle->SetTitleOffset(1, "y");
+  gStyle->SetTitleFontSize(.045);
+  //gStyle->SetTitleFont(16, "xz");
   
-  gStyle->SetLabelOffset(0.005, "y");
-  gStyle->SetLabelFont(16, "xyz");
-  gStyle->SetLabelSize(.055, "xyz");
+  gStyle->SetLabelOffset(0.005, "y");//.005
+  gStyle->SetLabelFont(22, "xyz");
+  gStyle->SetLabelSize(.085, "xyz");
 
 
   //mStyle->SetStyle("canvasStyle");

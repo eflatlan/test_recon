@@ -671,14 +671,10 @@
 ./readClusters_C.so: /root/alice/sw/slc8_x86-64/ROOT/v6-26-10-alice4-2/include/TH2.h
 ./readClusters_C.so: /root/alice/sw/slc8_x86-64/ROOT/v6-26-10-alice4-2/include/TLine.h
 ./readClusters_C.so: /root/alice/sw/slc8_x86-64/ROOT/v6-26-10-alice4-2/include/TROOT.h
-./readClusters_C.so: /root/alice/sw/slc8_x86-64/ROOT/v6-26-10-alice4-2/include/TPaveText.h
-./readClusters_C.so: /root/alice/sw/slc8_x86-64/ROOT/v6-26-10-alice4-2/include/TPave.h
-./readClusters_C.so: /root/alice/sw/slc8_x86-64/ROOT/v6-26-10-alice4-2/include/TBox.h
-./readClusters_C.so: /root/alice/sw/slc8_x86-64/ROOT/v6-26-10-alice4-2/include/TText.h
-./readClusters_C.so: /root/alice/sw/slc8_x86-64/ROOT/v6-26-10-alice4-2/include/TAttText.h
 ./readClusters_C.so: /root/alice/sw/slc8_x86-64/ROOT/v6-26-10-alice4-2/include/TRandom.h
 ./readClusters_C.so: /root/alice/sw/slc8_x86-64/ROOT/v6-26-10-alice4-2/include/Math/TRandomEngine.h
 ./readClusters_C.so: /root/alice/sw/slc8_x86-64/ROOT/v6-26-10-alice4-2/include/TStyle.h
+./readClusters_C.so: /root/alice/sw/slc8_x86-64/ROOT/v6-26-10-alice4-2/include/TAttText.h
 ./readClusters_C.so: /root/alice/sw/slc8_x86-64/ROOT/v6-26-10-alice4-2/include/TColor.h
 ./readClusters_C.so: /root/alice/sw/slc8_x86-64/ROOT/v6-26-10-alice4-2/include/TSystem.h
 ./readClusters_C.so: /root/alice/sw/slc8_x86-64/ROOT/v6-26-10-alice4-2/include/TInetAddress.h

@@ -1,9 +1,11 @@
 #if !defined(__CLING__) || defined(__ROOTCLING__)
 //#if !defined(__CINT__) || defined(__MAKECINT__)
 #include "DataFormatsHMP/Cluster.h"
+#include "HMPIDReconstruction/Clusterer.h"
 #include "DataFormatsHMP/Digit.h"
 #include "DataFormatsHMP/Trigger.h"
 #include <TCanvas.h>
+#include <TFile.h>
 #include <TFile.h>
 #include <TGraph.h>
 #include <TH1F.h>
@@ -11,34 +13,33 @@
 #include <TH2F.h>
 #include <TLine.h>
 #include <TList.h>
-#include <TPaveText.h>
 #include <TROOT.h> // gRoot
+#include <TPaveText.h>
 #include <TRandom.h>
 #include <TStyle.h>
 #include <TSystem.h>
 #include <TTree.h>
 #include <fstream>
 #include <vector>
+#include <fairlogger/Logger.h>
 
 // C++ header files and libraries
 #include <chrono>
 #include <ctime>
 #include <fstream>
 #include <iostream>
+#include <gsl/gsl>
 #include <malloc.h>
 #include <stdio.h>
 #include <string.h>
 #include <string>
-#include <iterator>
-#include <boost/iterator/zip_iterator.hpp>
-//#include <redi/zip.h>
 #include <sys/stat.h>
 #include <unistd.h>
 #endif
 
 
 using std::vector, std::cout, std::endl;
-using o2::hmpid::Cluster, o2::hmpid::Digit, o2::hmpid::Trigger;
+using o2::hmpid::Cluster, o2::hmpid::Digit, o2::hmpid::Trigger, o2::hmpid::Clusterer;
 
 std::vector<o2::hmpid::Digit> mDigitsFromFile,
 *mDigitsFromFilePtr = &mDigitsFromFile;
@@ -57,7 +58,7 @@ std::unique_ptr<TTree> mTree; ///< input tree
 
 
 
-std::unique_ptr<o2::hmpid::Clusterer> mRec; // ef: changed to smart-pointer
+std::unique_ptr<Clusterer> mRec; // ef: changed to smart-pointer
 
 
 void initFileIn(const std::string &fileName);
@@ -87,7 +88,8 @@ void readClusters(int nEvents) {
 
 
   vector<Cluster> clusters; vector<Trigger> clusterTriggers;
-  std::string fname;
+  char* fn;
+  int fname = 000000;
   vector<string> fileInfo;
   for (const auto &entry : fs::directory_iterator(path)) {
     const auto& pathName = static_cast<string>(entry.path());
@@ -102,48 +104,50 @@ void readClusters(int nEvents) {
     auto tmp = pathName.substr(0,  pathName.find_last_of("\\/"));
 
     auto folderName = tmp.substr(tmp.length()-6);
+    fname = stoi(folderName);
     if(folderName.length() == 6){
       if(std::all_of(folderName.begin(), folderName.end(), ::isdigit)){
-	fname = std::string(folderName);
-	std::cout << " fname " << fname << std::endl;
+	fn = strdup(folderName.c_str());
+	std::cout << " fname " << fn << std::endl;
       }
     }
     std::cout << " folderName " << folderName << std::endl;
     fileInfo = dig2Clus(pathName, clusters, clusterTriggers);
-    LOGP(info, " Digits file {} with {} Clusters, {} Triggers", pathName, clusters.size(), clusterTriggers.size());	
+    //cout << " Digits file << with {} Clusters, {} Triggers", , clusters.size(), clusterTriggers.size());	
   }
-
+  
 
   for (int i = 0; i < 7; i++) {
-    hMap[i].reset(new TH2F(Form("%s Clusters Map %i", fname.c_str(), i),
-                  Form("%s Cluster Map %i", fname.c_str(), i), 160, 0, 159, 144, 0, 143));
+    hMap[i].reset(new TH2F(Form("%i Clusters Map %i", fname, i),
+                  Form("%i Cluster Map %i", fname, i), 160, 0, 159, 144, 0, 143));
     hMap[i]->SetXTitle("X (cm)");
     hMap[i]->SetYTitle("Y (cm)");
 
-    hCharge[i].reset(new TH1F(Form("%s Clusters Charge%i", fname.c_str(), i),
-                     Form("%s Cluster Charge%i", fname.c_str(), i), 2000, 100., 2100.));
+    hCharge[i].reset(new TH1F(Form("%i Clusters Charge%i", fname, i),
+                     Form("%i Cluster Charge%i", fname, i), 2000, 100., 2100.));
     hCharge[i]->SetXTitle("Charge (ADC channel)");
     hCharge[i]->SetYTitle("Entries");
 
-    hMipCharge[i].reset(new TH1F(Form("%s Mip Cluster Charge%i", fname.c_str(),i), 
-                        Form("%s Mip Cluster Charge %i", fname.c_str(),i ), 50, 200., 2200.));
-
+    hMipCharge[i].reset(new TH1F(Form("%i Mip Cluster Charge%i", fname,i), 
+                        Form("%i Mip Cluster Charge %i", fname,i ), 50, 200., 2200.));
     hMipCharge[i]->SetXTitle("Charge (ADC channel)");
     hMipCharge[i]->SetYTitle("Entries/40 ADC");
-    hMipCharge[i]->SetLineColor(kBlack);
+    //hMipCharge[i]->SetLineColor(kBlack);
+    hMipCharge[i]->SetStats(kTRUE);
+    //hMipCharge[i]->StatOverflows(kTRUE);
 
-    hSize[i].reset(new TH1F(Form("%s Cluster Size%i", fname.c_str(), i),
-                   Form("%s Cluster Size%i", fname.c_str(), i), 20, 0., 20.));
+    hSize[i].reset(new TH1F(Form("%i Cluster Size%i", fname, i),
+                   Form("%i Cluster Size%i", fname, i), 20, 0., 20.));
 
     hSize[i]->SetXTitle("Cluster size");
     hSize[i]->SetYTitle("Entries");
   }
 
   std::array<std::unique_ptr<TCanvas>, 4> canvas;
-  (canvas[0]).reset(new TCanvas(("Cluster-Map " + fname).c_str(), ("Cluster-Map " + fname).c_str(), 1200, 1200));
-  (canvas[1]).reset(new TCanvas(("Cluster-Charge " + fname).c_str(), ("Cluster-Charge " + fname).c_str(), 1200, 1200));
-  (canvas[2]).reset(new TCanvas(("MIP Cluster-Charge " + fname).c_str(), ("MIP Cluster-Charge " + fname).c_str(),1200, 1200));  
-  (canvas[3]).reset(new TCanvas(("Cluster-Size " + fname).c_str(), ("Cluster-Size " + fname).c_str(), 1200, 1200));
+  (canvas[0]).reset(new TCanvas(Form("Cluster-Map %i",fname), Form("Cluster-Map %i",fname), 1200, 1200));
+  (canvas[1]).reset(new TCanvas(Form("Cluster-Charge %i",fname), Form("Cluster-Charge %i",fname), 1200, 1200));
+  (canvas[2]).reset(new TCanvas(Form("MIP Cluster-Charge %i",fname), Form("MIP Cluster-Charge %i",fname),1200, 1200));  
+  (canvas[3]).reset(new TCanvas(Form("Cluster-Size %i",fname), Form("Cluster-Size %i",fname), 1200, 1200));
 
 
   Int_t nTotTriggers = 0;
@@ -156,13 +160,13 @@ void readClusters(int nEvents) {
     std::unique_ptr<Cluster> pCluEvt;
     std::unique_ptr<Cluster> cluster;
 
-    vector<Cluster> *pClusters = &clusters;
-    vector<Cluster> oneEventClusters;
-    vector<Trigger> *pTrigger = &clusterTriggers;
+    //vector<Cluster> *pClusters = &clusters;
+    //vector<Cluster> oneEventClusters;
+    //vector<Trigger> *pTrigger = &clusterTriggers;
 
 
 
-    const int clusterSize = pClusters->size();
+    const int clusterSize = clusters.size();
     Printf("clusters size = %i", clusterSize);
 
     int module = 0;
@@ -180,42 +184,44 @@ void readClusters(int nEvents) {
       hSize[module]->Fill((&clus)->size());
     }
 
-    nTotTriggers += pTrigger->size();
-    const int triggerSize = pTrigger->size();
+    nTotTriggers += clusterTriggers.size();
+    const int triggerSize = clusterTriggers.size();
     Printf("trigger size from clusters = %i", triggerSize);
   
   //auto folderName = fname.c_str();
   std::array<std::unique_ptr<TPaveText>, 4> tpvs;
-
+  
+  const char* runLabel = Form("Run%i", fname);
   for(auto& tpv: tpvs){
     tpv.reset(new TPaveText(0.1, .2, .95, .8));
+    tpv->AddText(runLabel);
   }
 
+  
   tpvs[1]->AddText("Clusters Charge");
   tpvs[2]->AddText("MIP Clusters Charge");
   tpvs[3]->AddText("Clusters Size");
 
+  //fileInfo
+  auto f1 = (fileInfo[0]).c_str();
+  auto f2 = (fileInfo[1]).c_str();
+  auto f3 = (fileInfo[2]).c_str();
   for(auto& tpv: tpvs){
-    tpv->AddText(Form("Run%s", fname.c_str()));
-    tpv->AddText(fileInfo[0].c_str());
-    tpv->AddText(fileInfo[1].c_str());
-    tpv->AddText(fileInfo[2].c_str());
+    tpv->AddText(f1);
+    tpv->AddText(f2);
+    tpv->AddText(f3);
+    //tpv->AddText();
+    //tpv->AddText();
   }
-  
-  for(int i = 0; i < tpvs.size(); i++){
+  const int tpvSize = static_cast<int>(tpvs.size());
+  for(int i = 0; i < tpvSize; i++){
     canvas[i]->Divide(3, 3); 
     canvas[i]->cd(3);
     tpvs[i]->Draw();
   }
 
-  /*BOOST_FOREACH(boost::tie(c,t), boost::combine(canvas, tpvs)){
-    c->Divide(3, 3); 
-    c->cd(3);
-    t->Draw();
-  }*/
-
   const int posArr[] = {9, 8, 6, 5, 4, 2, 1};
-  for (int iCh = 0; iCh < sizeof(posArr); iCh++) {
+  for (int iCh = 0; iCh < 7; iCh++) {
     const auto& pos = posArr[iCh];
     canvas[0]->cd(pos);
     hMap[iCh]->SetMarkerStyle(3);
@@ -224,25 +230,24 @@ void readClusters(int nEvents) {
     canvas[1]->cd(pos);
     hCharge[iCh]->Draw();
 
+    hMipCharge[iCh]->SetStats(kTRUE);
     canvas[2]->cd(pos);
     hMipCharge[iCh]->Fit("landau");
     hMipCharge[iCh]->Draw();
 
     canvas[3]->cd(pos);
     hSize[iCh]->Draw();
-  }
-  // Printf("Number of triggers = %i", nTotTriggers);
-  // Printf(
-  /*
-  c1->SaveAs(("clusterMap_" + fname + "_.eps").c_str());
-  c2->SaveAs(("clusterCharge_" + fname + "_.eps").c_str());
-  c3->SaveAs(("mipClustesCharge_" + fname + "_.eps").c_str());
-  c4->SaveAs(("clusterSize_" + fname + "_.eps").c_str());
+  }  
+  canvas[0]->SaveAs(Form("clusterMap_%i_.eps",fname));
+  canvas[1]->SaveAs(Form("clusterCharge_%i_.eps",fname));
+  canvas[2]->SaveAs(Form("mipClustesCharge_%i_.eps",fname));
+  canvas[3]->SaveAs(Form("clusterSize_%i_.eps",fname));
 
-  c1->SaveAs(("clusterMap_" + fname + "_.png").c_str());
-  c2->SaveAs(("clusterCharge_" + fname + "_.png").c_str());
-  c3->SaveAs(("mipClustesCharge_" + fname + "_.png").c_str());
-  c4->SaveAs(("clusterSize_" + fname + "_.png").c_str()); */
+
+  canvas[0]->SaveAs(Form("clusterMap_%i_.png",fname));
+  canvas[1]->SaveAs(Form("clusterCharge_%i_.png",fname));
+  canvas[2]->SaveAs(Form("mipClustesCharge_%i_.png",fname));
+  canvas[3]->SaveAs(Form("clusterSize_%i_.png",fname));
 }
 
 //********************************************************************************************************************
@@ -323,6 +328,8 @@ void readDigits(char *filename, int nEvent) {
   vector<Digit> *pDigits = nullptr;
   vector<Digit> oneEventDigits;
   vector<Trigger> *pTriggers = nullptr;
+  vector<Digit> digits = *pDigits;
+  vector<Trigger> triggers = *pTriggers;
 
   if ((mTree->GetBranchStatus("HMPDigit")) == 1) {
     mTree->SetBranchAddress("HMPDigit", &pDigits);
@@ -334,8 +341,6 @@ void readDigits(char *filename, int nEvent) {
   }
   treeDigits->SetBranchAddress("InteractionRecords", &pTriggers);
 
-  vector<Digit> digits = *pDigits;
-  vector<Trigger> triggers = *pTriggers;
 
   // Number of entries in tree
   const int treeDigSize = treeDigits->GetEntries();
@@ -445,11 +450,12 @@ vector<string> dig2Clus(const std::string &fileName, vector<Cluster>& clusters, 
   
   clusters.clear();
   clusterTriggers.clear();
-  LOG(info) << "[HMPID DClusterization - run() ] Entries  = "
-            << mTree->GetEntries();
+  cout << "[HMPID DClusterization - run() ] Entries  = " << mTree->GetEntries() << endl; 
 
   // check if more entries in tree
   if (mTree->GetReadEntry() + 1 >= mTree->GetEntries()) {
+    mDigitsReceived, mClustersReceived, mTriggersReceived = 0;
+    firstTrigger, lastTrigger = 0;
   } else {
     auto entry = mTree->GetReadEntry() + 1;
     assert(entry < mTree->GetEntries());
@@ -458,8 +464,6 @@ vector<string> dig2Clus(const std::string &fileName, vector<Cluster>& clusters, 
     firstTrigger = (mTriggersFromFilePtr->at(0)).getOrbit();
     lastTrigger = (mTriggersFromFilePtr->back()).getOrbit();
 
-
-    // =============== create clusters =====================
     for (const auto &trig : *mTriggersFromFilePtr) {
       if (trig.getNumberOfObjects()) {
         gsl::span<const Digit> trigDigits{
@@ -472,28 +476,29 @@ vector<string> dig2Clus(const std::string &fileName, vector<Cluster>& clusters, 
       }
     }
 
-    LOGP(info,
-         "Received {} triggers with {} digits -> {} triggers with {} clusters",
-         mTriggersFromFilePtr->size(), mDigitsFromFilePtr->size(),
-         clusterTriggers.size(), clusters.size());
-    mDigitsReceived += mDigitsFromFilePtr->size();
-    mClustersReceived += clusters.size();
-    mTriggersReceived += mTriggersFromFilePtr->size();
-  } // <end else of num entries>
+    cout << "Received" << mTriggersFromFilePtr->size() << "triggers with " << mDigitsFromFilePtr->size() << "digits -> clusters = " << clusters.size();
 
-  const int numTriggers = static_cast<int>(mTriggersFromFilePtr->size());
-  const int numDigits = static_cast<int>( mDigitsFromFilePtr->size());
+    
+    mDigitsReceived = mDigitsFromFilePtr->size();
+    mClustersReceived = clusters.size();
+    mTriggersReceived = mTriggersFromFilePtr->size();
+  }
+
+  const int numTriggers = static_cast<int>(mTriggersReceived);
+  const int numDigits = static_cast<int>(mDigitsReceived);
   const int numClusters = static_cast<int>(mClustersReceived);
   
-  const auto f = Form("Triggers %i Digits %i Clusters %i",
-         numTriggers, numDigits, numClusters);
-  const auto g = Form("First Entry %i Last %i", firstTrigger, lastTrigger);
+
+  const auto& trigInfo = Form("Triggers %i" , numTriggers); 
+  const auto& digClusInfo = Form("Digits %i Clusters %i",
+              numDigits, numClusters);
+  //const auto trigger = Form("First Entry %i Last %i", firstTrigger, lastTrigger);
   
   int durSec = static_cast<int>((lastTrigger - firstTrigger)/1000);
   auto durMin = durSec%60;
   
-  const auto h = Form("Duration of triggers = %i min", durMin);
-  return  {f, g, h};
+  const auto durInfo = Form("Duration of triggers = %i min", durMin);
+  return  {trigInfo, digClusInfo, durInfo};
 }
 void initFileIn(const std::string &filename) {
  

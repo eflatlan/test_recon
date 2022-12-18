@@ -1,9 +1,11 @@
 #if !defined(__CLING__) || defined(__ROOTCLING__)
 //#if !defined(__CINT__) || defined(__MAKECINT__)
 #include "DataFormatsHMP/Cluster.h"
+#include "HMPIDReconstruction/Clusterer.h"
 #include "DataFormatsHMP/Digit.h"
 #include "DataFormatsHMP/Trigger.h"
 #include <TCanvas.h>
+#include <TFile.h>
 #include <TFile.h>
 #include <TGraph.h>
 #include <TH1F.h>
@@ -18,12 +20,14 @@
 #include <TTree.h>
 #include <fstream>
 #include <vector>
+#include <fairlogger/Logger.h>
 
 // C++ header files and libraries
 #include <chrono>
 #include <ctime>
 #include <fstream>
 #include <iostream>
+#include <gsl/gsl>
 #include <malloc.h>
 #include <stdio.h>
 #include <string.h>

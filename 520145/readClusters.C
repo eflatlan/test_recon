@@ -88,9 +88,11 @@ void readClusters(int nEvents) {
 
 
   vector<Cluster> clusters; vector<Trigger> clusterTriggers;
-  char* fn;
   int fname = 000000;
   vector<string> fileInfo;
+
+
+  bool fileFound = false;
   for (const auto &entry : fs::directory_iterator(path)) {
     const auto& pathName = static_cast<string>(entry.path());
     //std::cout << pathName << std::endl;
@@ -107,13 +109,17 @@ void readClusters(int nEvents) {
     fname = stoi(folderName);
     if(folderName.length() == 6){
       if(std::all_of(folderName.begin(), folderName.end(), ::isdigit)){
-	fn = strdup(folderName.c_str());
+        fileFound = true;
+        std::cout << " folderName " << folderName << std::endl;
+        fileInfo = dig2Clus(pathName, clusters, clusterTriggers);
+	char* fn = strdup(folderName.c_str());
 	std::cout << " fname " << fn << std::endl;
       }
     }
-    std::cout << " folderName " << folderName << std::endl;
-    fileInfo = dig2Clus(pathName, clusters, clusterTriggers);
     //cout << " Digits file << with {} Clusters, {} Triggers", , clusters.size(), clusterTriggers.size());	
+  }
+  if(!fileFound){
+    cout << "No fitting file found!";
   }
   
 
@@ -191,21 +197,24 @@ void readClusters(int nEvents) {
   //auto folderName = fname.c_str();
   std::array<std::unique_ptr<TPaveText>, 4> tpvs;
   
-  const char* runLabel = Form("Run%i", fname);
+
+  //fileInfo
+  const auto f1 = (fileInfo[0]).c_str();
+  const auto f2 = (fileInfo[1]).c_str();
+  const auto f3 = (fileInfo[2]).c_str();
+
+  //const char* runLabel = Form("%i  Duration = %s", fname, f1);
+  const char* runLabel = Form("%i", fname);
   for(auto& tpv: tpvs){
-    tpv.reset(new TPaveText(0.1, .2, .95, .8));
+    tpv.reset(new TPaveText(0.025, .025, .925, .925));
     tpv->AddText(runLabel);
   }
 
-  
   tpvs[1]->AddText("Clusters Charge");
   tpvs[2]->AddText("MIP Clusters Charge");
   tpvs[3]->AddText("Clusters Size");
 
-  //fileInfo
-  auto f1 = (fileInfo[0]).c_str();
-  auto f2 = (fileInfo[1]).c_str();
-  auto f3 = (fileInfo[2]).c_str();
+
   for(auto& tpv: tpvs){
     tpv->AddText(f1);
     tpv->AddText(f2);
@@ -237,7 +246,11 @@ void readClusters(int nEvents) {
 
     canvas[3]->cd(pos);
     hSize[iCh]->Draw();
-  }  
+  }
+
+
+
+
   canvas[0]->SaveAs(Form("clusterMap_%i_.eps",fname));
   canvas[1]->SaveAs(Form("clusterCharge_%i_.eps",fname));
   canvas[2]->SaveAs(Form("mipClustesCharge_%i_.eps",fname));
@@ -366,8 +379,6 @@ void readDigits(char *filename, int nEvent) {
   const int triggerSize = static_cast<int>(pTriggers->size());
   Printf("trigger size from digits = %i", triggerSize);
 
-  // Loop through triggers
-  //for (int i = 0; i < triggerSize; i++) {
   int i = 0;
   for (const auto& trg : triggers) {
     oneEventDigits.clear(); // empty vector
@@ -378,8 +389,6 @@ void readDigits(char *filename, int nEvent) {
     }
 
     if (i == nEvent) {
-      //const int oneEventDigSize = static_cast<int>(oneEventDigits.size());
-      //for (int k = 0; k < oneEventDigSize; k++) {
       for (const auto& digEvt : oneEventDigits) {
 
         Digit::pad2Absolute(digEvt.getPadID(), &module, &padChX,
@@ -543,15 +552,32 @@ void initFileIn(const std::string &filename) {
 
 void changeFont()
 {
+
+  /*
   std::unique_ptr<TStyle> mStyle; 
   mStyle.reset(new TStyle("canvasStyle", "Canvas Root Styles"));
-  mStyle->SetTitleSize(.075, "xz");
-  mStyle->SetTitleFontSize(.1);
-  mStyle->SetTitleFont(18, "xz");
-  mStyle->SetLabelOffset(0.004, "y");
-  mStyle->SetLabelFont(18, "xyz");
-  mStyle->SetLabelSize(.085, "xyz");
-  gROOT->SetStyle("canvasStyle");
+  */ 
+
+  gStyle->SetOptStat("kirme");
+  gStyle->SetStatX(0.975);
+  gStyle->SetStatY(0.975);
+  gStyle->SetStatW(0.325);
+  gStyle->SetStatH(0.3);
+  gStyle->SetStatFontSize(0.095);
+
+  gStyle->SetLegendTextSize(0.035);
+
+  gStyle->SetTitleSize(.055, "xzy");
+  gStyle->SetTitleOffset(.095, "xzy");
+  gStyle->SetTitleFontSize(.055);
+  gStyle->SetTitleFont(16, "xz");
+  
+  gStyle->SetLabelOffset(0.005, "y");
+  gStyle->SetLabelFont(16, "xyz");
+  gStyle->SetLabelSize(.055, "xyz");
+
+
+  //mStyle->SetStyle("canvasStyle");
 }
 
 

@@ -666,6 +666,8 @@
 ./readClusters_C.so: /root/alice/sw/slc8_x86-64/ROOT/v6-26-10-alice4-2/include/TArrayF.h
 ./readClusters_C.so: /root/alice/sw/slc8_x86-64/ROOT/v6-26-10-alice4-2/include/Foption.h
 ./readClusters_C.so: /root/alice/sw/slc8_x86-64/ROOT/v6-26-10-alice4-2/include/ROOT/EExecutionPolicy.hxx
+./readClusters_C.so: /root/alice/sw/slc8_x86-64/ROOT/v6-26-10-alice4-2/include/TApplication.h
+./readClusters_C.so: /root/alice/sw/slc8_x86-64/ROOT/v6-26-10-alice4-2/include/TApplicationImp.h
 ./readClusters_C.so: /root/alice/sw/slc8_x86-64/ROOT/v6-26-10-alice4-2/include/TF1.h
 ./readClusters_C.so: /root/alice/sw/slc8_x86-64/ROOT/v6-26-10-alice4-2/include/TFormula.h
 ./readClusters_C.so: /root/alice/sw/slc8_x86-64/ROOT/v6-26-10-alice4-2/include/TBits.h

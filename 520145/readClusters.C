@@ -246,19 +246,33 @@ void readClusters(int nEvents) {
     canvas[1]->cd(pos);
     hCharge[iCh]->Draw();
 
+
+    //RooRealVar m1("m1", "mean landau", 0, 2200);
+    //RooRealVar m1("m1", "mean landau", 0, 2200);
+
+
+  
     hMipCharge[iCh]->SetStats(kTRUE);
     canvas[2]->cd(pos);
-    //hMipCharge[iCh]->Fit("landau");
-
-    const char* fitString = Form("Fit%i",iCh);
-
-    unique_ptr<TF1> f1;
-    f1.reset(new TF1(fitString, "TMath::Landau(x, [0], [1], 0)", 0, 2200));
-    hMipCharge[iCh]->Fit("TMath::Landau(x, [0], [1], 0)", "Q");
-
-    //tf1Fit.reset(static_cast<TF1>(gROOT->GetFunction("landau")));
-    //tf1Fit.reset(static_cast<TF1>(new TF1(fitString, fitString)))
+    hMipCharge[iCh]->Fit("landau");
     hMipCharge[iCh]->Draw();
+
+    
+    
+    
+    //auto a = (hMipCharge[iCh])->GetFunction("landau");
+
+    //cout << "Fit function  " << a << endl;
+    //LOG(info) << "Fit Function " << a;
+
+    //const char* fitString = Form("Fit%i",iCh);
+
+    //unique_ptr<TF1> f1;
+    //f1.reset(new TF1(fitString, "landau", -1, 1));
+
+
+
+
 
     //hMipChargeGraph[iCh].reset(new TGraph());
     //hMipChargeGraph[iCh]->Fit(fitString, "Q");

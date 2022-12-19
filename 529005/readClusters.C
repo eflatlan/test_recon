@@ -9,6 +9,8 @@
 #include <TFile.h>
 #include <TGraph.h>
 #include <TH1F.h>
+#include <TMath.h>
+#include <TApplication.h>
 #include <TF1.h>
 #include <TH2F.h>
 #include <TLine.h>
@@ -235,6 +237,14 @@ void readClusters(int nEvents) {
   }
   
   std::array<unique_ptr<TF1>, 7> tf1Fit;
+  TF1::InitStandardFunctions();
+  gROOT->GetListOfFunctions()->ls();
+
+
+  (hMipCharge[0])->FitPanel();
+  for(auto& hM : hMipCharge ){
+    hM->FitPanel();
+  }
 
   const int posArr[] = {9, 8, 6, 5, 4, 2, 1};
   for (int iCh = 0; iCh < 7; iCh++) {
@@ -249,26 +259,44 @@ void readClusters(int nEvents) {
     hMipCharge[iCh]->SetStats(kTRUE);
     canvas[2]->cd(pos);
     hMipCharge[iCh]->Fit("landau");
-
-    const char* fitString = Form("Fit%i",iCh);
-
-    unique_ptr<TF1> f1;
-    f1.reset(new TF1(fitString, "TMath::Landau(x, [0], [1], 0)", 0, 2200));
-    hMipCharge[iCh]->Fit("TMath::Landau(x, [0], [1], 0)", "Q");
-
-    //tf1Fit.reset(static_cast<TF1>(gROOT->GetFunction("landau")));
-    //tf1Fit.reset(static_cast<TF1>(new TF1(fitString, fitString)))
     hMipCharge[iCh]->Draw();
 
-    //hMipChargeGraph[iCh].reset(new TGraph());
-    //hMipChargeGraph[iCh]->Fit(fitString, "Q");
+    auto a = (hMipCharge[iCh])->GetFunction("landau");
 
+
+    cout << "Function a " << a << endl;
+    LOG(info) << "Function a " << a;
+
+    cout << "=====================" << endl;
+    LOG(info) << "=====================" ;
+
+    cout << "(hMipCharge[iCh])->FitPanel() " << endl;
+    LOG(info) << "(hMipCharge[iCh])->FitPanel() ";
+    (hMipCharge[iCh])->FitPanel();
+
+    cout << "=====================" << endl;
+    LOG(info) << "=====================" ;
+
+    cout << "(hMipCharge[iCh])->Write() " << endl;
+    LOG(info) << "(hMipCharge[iCh])->Write()";
+    auto t = (hMipCharge[iCh])->Write();
+
+    cout << "=====================" << endl;
+    LOG(info) << "=====================" ;
+
+    cout << " write2" << endl;
+    LOG(info) << "write2";
+    cout << t << endl; 
+
+
+
+    
     canvas[3]->cd(pos);
     hSize[iCh]->Draw();
   }
 
 
-
+ 
 
   canvas[0]->SaveAs(Form("clusterMap_%i_.eps",fname));
   canvas[1]->SaveAs(Form("clusterCharge_%i_.eps",fname));

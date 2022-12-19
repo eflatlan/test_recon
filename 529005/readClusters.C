@@ -17,6 +17,9 @@
 #include <TList.h>
 #include <TROOT.h> // gRoot
 #include <TPaveText.h>
+#include <TPaveStats.h>
+#include <TLatex.h>
+
 #include <TRandom.h>
 #include <TStyle.h>
 #include <TSystem.h>
@@ -258,6 +261,9 @@ void readClusters(int nEvents) {
     hMipCharge[iCh]->SetStats(kTRUE);
     canvas[2]->cd(pos);
 
+
+
+    gStyle->SetOptStat();
     unique_ptr<TF1> fitFunc;
     fitFunc.reset(new TF1(Form("FitFunc%i", iCh), "landau", 0., 4000));
     hMipCharge[iCh]->Fit(fitFunc.get(), Form("FitTH1F%i", iCh), "", 20., 2220.);
@@ -269,18 +275,28 @@ void readClusters(int nEvents) {
     cout << Constant << endl;   
     cout << MPV << endl;   
     cout << Sigma << endl;  
+    
+    const auto& fitString = Form("Constant %f MPV %f Sigma %f", Constant, MPV, Sigma);
 
-
-    //hMipCharge[iCh]->Fit(fitFunc, Form("FT%i", iCh), "", 20., 2220.);
+    hMipCharge[iCh]->SetTitle(fitString);
     hMipCharge[iCh]->Draw();
+    //canvas[2]->Update();    
 
+    //TPaveStats* fitStats = static_cast<TPaveStats*>(canvas[2]->GetPrimitive("stats"));
+    //fitStats->SetName("temp");
 
+    //TList* listOfStats = static_cast<TList*>(fitStats->GetListOfLines());
 
-    auto a = (hMipCharge[iCh])->GetFunction(Form("FitFunc%i", iCh));
+    //unique_ptr<TLatex> constStat; 
+    //constStat.reset(new TLatex(0, 0, Form("MPV = %f ", MPV)));
+    //listOfStats->Add(constStat.get());
 
+    //hMipCharge[iCh]->SetStats(0);  
+    //canvas[2]->Modified();
 
-    cout << " aaa " << endl;  
-    cout << a->GetFormula() << endl;  
+    //auto a = (hMipCharge[iCh])->GetFunction(Form("FitFunc%i", iCh));
+
+    //cout << *(a->GetFormula()) << endl;  
 
   }
 

@@ -666,7 +666,13 @@
 ./readClusters_C.so: /root/alice/sw/slc8_x86-64/ROOT/v6-26-10-alice4-2/include/TArrayF.h
 ./readClusters_C.so: /root/alice/sw/slc8_x86-64/ROOT/v6-26-10-alice4-2/include/Foption.h
 ./readClusters_C.so: /root/alice/sw/slc8_x86-64/ROOT/v6-26-10-alice4-2/include/ROOT/EExecutionPolicy.hxx
-./readClusters_C.so: /root/alice/sw/slc8_x86-64/ROOT/v6-26-10-alice4-2/include/TH1I.h
+./readClusters_C.so: /root/alice/sw/slc8_x86-64/ROOT/v6-26-10-alice4-2/include/TF1.h
+./readClusters_C.so: /root/alice/sw/slc8_x86-64/ROOT/v6-26-10-alice4-2/include/TFormula.h
+./readClusters_C.so: /root/alice/sw/slc8_x86-64/ROOT/v6-26-10-alice4-2/include/TBits.h
+./readClusters_C.so: /root/alice/sw/slc8_x86-64/ROOT/v6-26-10-alice4-2/include/Math/Types.h
+./readClusters_C.so: /root/alice/sw/slc8_x86-64/ROOT/v6-26-10-alice4-2/include/TMethodCall.h
+./readClusters_C.so: /root/alice/sw/slc8_x86-64/ROOT/v6-26-10-alice4-2/include/TF1AbsComposition.h
+./readClusters_C.so: /root/alice/sw/slc8_x86-64/ROOT/v6-26-10-alice4-2/include/Math/ParamFunctor.h
 ./readClusters_C.so: /root/alice/sw/slc8_x86-64/ROOT/v6-26-10-alice4-2/include/TH2F.h
 ./readClusters_C.so: /root/alice/sw/slc8_x86-64/ROOT/v6-26-10-alice4-2/include/TH2.h
 ./readClusters_C.so: /root/alice/sw/slc8_x86-64/ROOT/v6-26-10-alice4-2/include/TLine.h
@@ -690,7 +696,6 @@
 ./readClusters_C.so: /root/alice/sw/slc8_x86-64/ROOT/v6-26-10-alice4-2/include/TVirtualTreePlayer.h
 ./readClusters_C.so: /root/alice/sw/slc8_x86-64/ROOT/v6-26-10-alice4-2/include/TBranch.h
 ./readClusters_C.so: /root/alice/sw/slc8_x86-64/ROOT/v6-26-10-alice4-2/include/TBranchCacheInfo.h
-./readClusters_C.so: /root/alice/sw/slc8_x86-64/ROOT/v6-26-10-alice4-2/include/TBits.h
 ./readClusters_C.so: /root/alice/sw/slc8_x86-64/FairLogger/v1.11.1-5/include/fairlogger/Logger.h
 ./readClusters_C.so: /root/alice/sw/slc8_x86-64/fmt/9.1.0-1/include/fmt/core.h
 ./readClusters_C.so: /root/alice/sw/slc8_x86-64/fmt/9.1.0-1/include/fmt/printf.h

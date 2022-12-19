@@ -9,7 +9,7 @@
 #include <TFile.h>
 #include <TGraph.h>
 #include <TH1F.h>
-#include <TH1I.h>
+#include <TF1.h>
 #include <TH2F.h>
 #include <TLine.h>
 #include <TList.h>
@@ -80,6 +80,7 @@ void readClusters(int nEvents) {
 
   auto runNumber = (gwd.substr(gwd.length() - 9, gwd.length()));
 
+  std::array<std::unique_ptr<TGraph>, 7> hMipChargeGraph;
   std::array<std::unique_ptr<TH1F>, 7> hCharge, hMipCharge, hSize;
   std::array<std::unique_ptr<TH2F>, 7> hMap;
 
@@ -188,6 +189,7 @@ void readClusters(int nEvents) {
 
       if ((&clus)->size() >= 3 && (&clus)->size() <= 7){
         hMipCharge[module]->Fill((&clus)->q());
+        //hMipCharge[module]->Fill((&clus)->q());
       }
 
       hSize[module]->Fill((&clus)->size());
@@ -231,6 +233,8 @@ void readClusters(int nEvents) {
     canvas[i]->cd(3);
     tpvs[i]->Draw();
   }
+  
+  std::array<unique_ptr<TF1>, 7> tf1Fit;
 
   const int posArr[] = {9, 8, 6, 5, 4, 2, 1};
   for (int iCh = 0; iCh < 7; iCh++) {
@@ -244,8 +248,20 @@ void readClusters(int nEvents) {
 
     hMipCharge[iCh]->SetStats(kTRUE);
     canvas[2]->cd(pos);
-    hMipCharge[iCh]->Fit("landau");
+    //hMipCharge[iCh]->Fit("landau");
+
+    const char* fitString = Form("Fit%i",iCh);
+
+    unique_ptr<TF1> f1;
+    f1.reset(new TF1(fitString, "TMath::Landau(x, [0], [1], 0)", 0, 2200));
+    hMipCharge[iCh]->Fit("TMath::Landau(x, [0], [1], 0)", "Q");
+
+    //tf1Fit.reset(static_cast<TF1>(gROOT->GetFunction("landau")));
+    //tf1Fit.reset(static_cast<TF1>(new TF1(fitString, fitString)))
     hMipCharge[iCh]->Draw();
+
+    //hMipChargeGraph[iCh].reset(new TGraph());
+    //hMipChargeGraph[iCh]->Fit(fitString, "Q");
 
     canvas[3]->cd(pos);
     hSize[iCh]->Draw();
@@ -570,13 +586,13 @@ void changeFont()
 
   gStyle->SetLegendTextSize(0.035);//
 
-  gStyle->SetTitleSize(.04, "xzy");
-  gStyle->SetTitleOffset(.95, "xzy");
-  gStyle->SetTitleOffset(1.15, "y");//1.05
+  gStyle->SetTitleSize(.045, "xzy");
+  gStyle->SetTitleOffset(1.05, "xzy");
+  gStyle->SetTitleOffset(1.25, "y");//1.05
   gStyle->SetTitleFontSize(.045);
   //gStyle->SetTitleFont(16, "xz");
   
-  gStyle->SetLabelOffset(0.005, "y");
+  gStyle->SetLabelOffset(0.00625, "y");
   gStyle->SetLabelFont(22, "xyz");
   gStyle->SetLabelSize(.0425, "xyz"); //.055 // verdi av akser
 

@@ -43,6 +43,7 @@
 #endif
 
 
+
 using std::vector, std::cout, std::endl;
 using o2::hmpid::Cluster, o2::hmpid::Digit, o2::hmpid::Trigger, o2::hmpid::Clusterer;
 
@@ -75,6 +76,7 @@ void strToFloatsSplit(std::string s, std::string delimiter, float *res,
 #include <iostream>
 #include <string>
 namespace fs = std::filesystem;
+void readDigits();
 
 void readClusters(int nEvents) {
   changeFont();
@@ -88,7 +90,9 @@ void readClusters(int nEvents) {
 
 
   std::array<std::unique_ptr<TH1F>, 7> hCharge, hMipCharge, hSize;
-  std::array<std::unique_ptr<TH2F>, 7> hMap;
+  std::array<std::unique_ptr<TH2F>, 7> hMap, hMipMap;
+
+  TH1 *hMipCharge2[7];
 
   // changeFont();			     // specify folder to save files in
   // SaveFolder("clusterChambers");   // apply custom canvas figure options
@@ -121,6 +125,7 @@ void readClusters(int nEvents) {
         fileInfo = dig2Clus(pathName, clusters, clusterTriggers);
 	char* fn = strdup(folderName.c_str());
 	std::cout << " fname " << fn << std::endl;
+        //readDigits();
       }
     }
     //cout << " Digits file << with {} Clusters, {} Triggers", , clusters.size(), clusterTriggers.size());	
@@ -137,6 +142,7 @@ void readClusters(int nEvents) {
     hMap[i]->SetXTitle("X (cm)");
     hMap[i]->SetYTitle("Y (cm)");
 
+
     const char* canStringCharge = Form("Charge %i", i);
     hCharge[i].reset(new TH1F(canStringCharge, canStringCharge, 2000, 100., 2100.));
     hCharge[i]->SetXTitle("Charge (ADC channel)");
@@ -150,21 +156,36 @@ void readClusters(int nEvents) {
     hMipCharge[i]->SetStats(kTRUE);
     //hMipCharge[i]->StatOverflows(kTRUE);
 
+
+    const char* canStringMip2 = Form("MIP-Charge2 %i", i);
+    hMipCharge2[i]= new TH1F(canStringMip2, canStringMip2, 50, 200., 2200.);
+    hMipCharge2[i]->SetXTitle("Charge (ADC channel)");
+    hMipCharge2[i]->SetYTitle("Entries/40 ADC");
+    hMipCharge2[i]->SetStats(kTRUE);
+
+
+    const char* canStringMipMap = Form("MIP-Charge Map %i", i);
+    hMipMap[i].reset(new TH2F(canStringMipMap, canStringMipMap, 160, 0, 159, 144, 0, 143));
+    hMipMap[i]->SetXTitle("X (cm)");
+    hMipMap[i]->SetYTitle("Y (cm)");
+
     const char* canStringSize = Form("Size %i", i);
     hSize[i].reset(new TH1F(canStringSize, canStringSize, 20, 0., 20.));
-
     hSize[i]->SetXTitle("Cluster size");
     hSize[i]->SetYTitle("Entries");
   }
-  
+ 
 
-
-  std::array<std::unique_ptr<TCanvas>, 4> canvas;  
+  std::array<std::unique_ptr<TCanvas>, 5> canvas;  
   
   (canvas[0]).reset(new TCanvas(Form("Cluster-Map %i",fname), Form("Cluster-Map %i",fname), 1200, 1200));
   (canvas[1]).reset(new TCanvas(Form("Cluster-Charge %i",fname), Form("Cluster-Charge %i",fname), 1200, 1200));
   (canvas[2]).reset(new TCanvas(Form("MIP Cluster-Charge %i",fname), Form("MIP Cluster-Charge %i",fname),1200, 1200));  
   (canvas[3]).reset(new TCanvas(Form("Cluster-Size %i",fname), Form("Cluster-Size %i",fname), 1200, 1200));
+  (canvas[4]).reset(new TCanvas(Form("MIP Cluster-Map %i",fname), Form("MIP Cluster-Map %i",fname), 1200, 1200));
+
+  TCanvas *mipCanvasRaw = new TCanvas(Form("MipLandau %i",fname), Form("MipLandau %i",fname), 1200, 1200);
+
 
 
   Int_t nTotTriggers = 0;
@@ -178,7 +199,7 @@ void readClusters(int nEvents) {
     std::unique_ptr<Cluster> cluster;
 
     //vector<Cluster> *pClusters = &clusters;
-    //vector<Cluster> oneEventClusters;
+    vector<Cluster> oneEventClusters;
     //vector<Trigger> *pTrigger = &clusterTriggers;
 
 
@@ -186,21 +207,29 @@ void readClusters(int nEvents) {
     const int clusterSize = clusters.size();
     Printf("clusters size = %i", clusterSize);
 
-    int module = 0;
+
+    float minCharge = 9999.0f; float maxCharge = 0.0f;
+
 
     for (auto& clus : clusters) {
+      const auto& charge = clus.q();
+      const auto& clusSize = clus.size();
+      const auto& x = clus.x();
+      const auto& y = clus.y();
+      const auto& module = clus.ch();
+      if(minCharge < charge) {minCharge = charge;}
+      if(minCharge < charge) {minCharge = charge;}
 
-      module = (&clus)->ch();
 
-      hCharge[module]->Fill((&clus)->q());
-
-      if ((&clus)->size() >= 3 && (&clus)->size() <= 7){
-        hMipCharge[module]->Fill((&clus)->q());
-        //MipCharge[module]->Fill((&clus)->q());
-        //hMipRaw[module]->Fill((&clus)->q());
+      hCharge[module]->Fill(charge);
+      if (clusSize >= 3 && clusSize <= 7){
+        hMipCharge[module]->Fill(charge);
+        hMipCharge2[module]->Fill(charge);
+        hMipMap[module]->Fill(x, y);
       }
+      hMap[module]->Fill(x, y);
 
-      hSize[module]->Fill((&clus)->size());
+      hSize[module]->Fill(clusSize);
     }
 
     nTotTriggers += clusterTriggers.size();
@@ -208,7 +237,7 @@ void readClusters(int nEvents) {
     Printf("trigger size from clusters = %i", triggerSize);
   
   //auto folderName = fname.c_str();
-  std::array<std::unique_ptr<TPaveText>, 4> tpvs;
+  std::array<std::unique_ptr<TPaveText>, 5> tpvs;
   
 
   //fileInfo
@@ -223,18 +252,26 @@ void readClusters(int nEvents) {
     tpv->AddText(runLabel);
   }
 
+  tpvs[0]->AddText("Cluster-Map");
   tpvs[1]->AddText("Clusters Charge");
   tpvs[2]->AddText("MIP Clusters Charge");
   tpvs[3]->AddText("Clusters Size");
-
+  tpvs[4]->AddText("MIP Cluster-Map");
 
   for(auto& tpv: tpvs){
     tpv->AddText(f1);
     tpv->AddText(f2);
     tpv->AddText(f3);
-    //tpv->AddText();
-    //tpv->AddText();
   }
+
+  //efRaw
+  TPaveText *tpvMipRaw = new TPaveText(0.05, .05, .9, .9);
+  tpvMipRaw->AddText(runLabel);
+  tpvMipRaw->AddText("MIP Landau Raw");
+  tpvMipRaw->AddText(f1); tpvMipRaw->AddText(f2); tpvMipRaw->AddText(f3);
+  mipCanvasRaw->Divide(3, 3); mipCanvasRaw->cd(3);
+  tpvMipRaw->Draw();//*/
+
   const int tpvSize = static_cast<int>(tpvs.size());
   for(int i = 0; i < tpvSize; i++){
     canvas[i]->Divide(3, 3); 
@@ -242,6 +279,8 @@ void readClusters(int nEvents) {
     tpvs[i]->Draw();
   }
   
+
+
   std::array<unique_ptr<TF1>, 7> tf1Fit;
   TF1::InitStandardFunctions();
   
@@ -250,20 +289,28 @@ void readClusters(int nEvents) {
   const int posArr[] = {9, 8, 6, 5, 4, 2, 1};
   for (int iCh = 0; iCh < 7; iCh++) {
     const auto& pos = posArr[iCh];
+    
+    auto pad0 = static_cast<TPad*>(canvas[0]->cd(pos));
 
-    canvas[0]->cd(pos);
+
     hMap[iCh]->SetMarkerStyle(3);
     hMap[iCh]->Draw();
-
-    canvas[1]->cd(pos);
+    gStyle->SetOptStat("mi");
+    gStyle->SetStatX(0.975);
+    gStyle->SetStatY(0.975);
+    gStyle->SetStatW(0.1);
+    gStyle->SetStatH(0.1);
+    
+    auto pad1 = static_cast<TPad*>(canvas[1]->cd(pos));
     hCharge[iCh]->Draw();
+    
+    changeFont();
 
+
+    auto pad2 = static_cast<TPad*>(canvas[2]->cd(pos));
     hMipCharge[iCh]->SetStats(kTRUE);
-    canvas[2]->cd(pos);
-
-
-
-    gStyle->SetOptStat();
+    gStyle->SetOptStat("rmi");
+    //gStyle->SetOptStat();
     unique_ptr<TF1> fitFunc;
     fitFunc.reset(new TF1(Form("FitFunc%i", iCh), "landau", 0., 4000));
     hMipCharge[iCh]->Fit(fitFunc.get(), Form("FitTH1F%i", iCh), "", 20., 2220.);
@@ -274,46 +321,85 @@ void readClusters(int nEvents) {
     const auto& Sigma = (fitFunc.get())->GetParameter(2);
     cout << Constant << endl;   
     cout << MPV << endl;   
-    cout << Sigma << endl;  
-    
-    const auto& fitString = Form("Constant %f MPV %f Sigma %f", Constant, MPV, Sigma);
-
-    hMipCharge[iCh]->SetTitle(fitString);
+    cout << Sigma << endl;
+  
+    hMipCharge[iCh]->SetTitle(Form("Constant %03.1f \n MPV %03.1f Sigma %03.1f", Constant, MPV, Sigma));
     hMipCharge[iCh]->Draw();
-    //canvas[2]->Update();    
+    /*std::unique_ptr<TPaveText> tPaveStat;
+    tPaveStat.reset(new TPaveText(0.05, .05, .9, .9));
+    tPaveStat->AddText(Form("Constant %f", 1.0));
+    
+    pad2->Update(); 
+    tPaveStat->Draw();
+    pad2->Modified();*/
+    //const auto& fitString = Form("Constant %f MPV %f Sigma %f", Constant, MPV, Sigma);
 
-    //TPaveStats* fitStats = static_cast<TPaveStats*>(canvas[2]->GetPrimitive("stats"));
-    //fitStats->SetName("temp");
 
-    //TList* listOfStats = static_cast<TList*>(fitStats->GetListOfLines());
+    //pad2->Add();
+
+    /*
+       
+     
+
+    TPaveStats *fitStats = static_cast<TPaveStats*>(pad2->GetPrimitive("stats"));
+    fitStats->SetName("temp");
+    TList *listOfStats = fitStats->GetListOfLines(); 
+
+    TLatex* constStat = new TLatex(0, 0, Form("MPV = %f ", MPV));
+    constStat->SetTextFont(42);
+    constStat->SetTextSize(0.04);
+
+    // BRYTER HER:::
+    //listOfStats->Add(constStat);*/ 
 
     //unique_ptr<TLatex> constStat; 
     //constStat.reset(new TLatex(0, 0, Form("MPV = %f ", MPV)));
-    //listOfStats->Add(constStat.get());
+
+
 
     //hMipCharge[iCh]->SetStats(0);  
-    //canvas[2]->Modified();
+    //pad2->Modified();
 
     //auto a = (hMipCharge[iCh])->GetFunction(Form("FitFunc%i", iCh));
 
-    //cout << *(a->GetFormula()) << endl;  
+    //cout << *(a->GetFormula()) << endl; 
+
+    auto pad3 = static_cast<TPad*>(canvas[3]->cd(pos));
+    hCharge[iCh]->Draw();
+
+    auto pad4 = static_cast<TPad*>(canvas[4]->cd(pos));
+    hMipMap[iCh]->Draw();
+   
+    //*efRaw
+    auto pad5 = static_cast<TPad*>(mipCanvasRaw->cd(pos));
+    hMipCharge2[iCh]->Fit("landau");
+    hMipCharge2[iCh]->Draw();//*/
+
 
   }
-
+  
+  canvas[0]->SaveAs(Form("clusterMap_%i_.eps",fname));
   canvas[1]->SaveAs(Form("clusterCharge_%i_.eps",fname));
   canvas[2]->SaveAs(Form("mipClustesCharge_%i_.eps",fname));
-  canvas[3]->SaveAs(Form("clusterSize_%i_.eps",fname));
+  canvas[3]->SaveAs(Form("ClusterSize%i_.eps",fname));
+  canvas[4]->SaveAs(Form("MipMap%i_.eps",fname));
+  //mipCanvasRaw->SaveAs(Form("MipLandau%i_.eps",fname));
 
+  canvas[0]->SaveAs(Form("clusterMap_%i_.png",fname));
   canvas[1]->SaveAs(Form("clusterCharge_%i_.png",fname));
   canvas[2]->SaveAs(Form("mipClustesCharge_%i_.png",fname));
-  canvas[3]->SaveAs(Form("clusterSize_%i_.png",fname));
-  canvas[0]->SaveAs(Form("clusterMap_%i_.png",fname));
-  canvas[0]->SaveAs(Form("clusterMap_%i_.eps",fname));
+  canvas[3]->SaveAs(Form("mipClustesCharge_2%i_.png",fname));
+  canvas[4]->SaveAs(Form("MipMap%i_.png",fname));
+  //mipCanvasRaw->SaveAs(Form("MipLandau%i_.png",fname));	
 }
 
 //********************************************************************************************************************
 
-void readDigits(char *filename, int nEvent) {
+void readDigits() 
+{
+
+  const auto& filename = "hmpDig70.root";
+  int nEvent = 5;
   std::unique_ptr<TFile> fileDigits;
   fileDigits.reset(static_cast<TFile*>(TFile::Open(filename)));
   // Cast to TTree*, get tree by key "o2sim"
@@ -348,6 +434,7 @@ void readDigits(char *filename, int nEvent) {
                        0, 159, 144, 0, 143));
     hMap[i]->SetXTitle("pad X [cm]");
     hMap[i]->SetYTitle("pad Y [cm]");
+
 
     hCharge[i].reset(new TH1F(Form("Digits Charge %i", i),
                           Form("Digits Charge %i", i), 2000, 100., 2100.));
@@ -453,6 +540,7 @@ void readDigits(char *filename, int nEvent) {
     pos = posArr[iCh];
     c2->cd(pos);
     hCharge[iCh]->SetStats(false);
+
     hCharge[iCh]->Draw();
 
     c1->cd(pos);
@@ -467,6 +555,7 @@ void readDigits(char *filename, int nEvent) {
     h_yCoord[iCh]->SetStats(false);
     h_yCoord[iCh]->Draw();
   }
+
   c1->SaveAs("digitmap.eps");
   c2->SaveAs("digitcharge.eps");
   c3->SaveAs("digitX.eps");
@@ -511,8 +600,8 @@ vector<string> dig2Clus(const std::string &fileName, vector<Cluster>& clusters, 
 
   // check if more entries in tree
   if (mTree->GetReadEntry() + 1 >= mTree->GetEntries()) {
-    mDigitsReceived, mClustersReceived, mTriggersReceived = 0;
-    firstTrigger, lastTrigger = 0;
+    //mDigitsReceived, mClustersReceived, mTriggersReceived = 0;
+    //firstTrigger, lastTrigger = 0;
   } else {
     auto entry = mTree->GetReadEntry() + 1;
     assert(entry < mTree->GetEntries());
@@ -606,14 +695,14 @@ void changeFont()
   mStyle.reset(new TStyle("canvasStyle", "Canvas Root Styles"));
   */ 
 
-  gStyle->SetOptStat("kirme");
+
   gStyle->SetStatX(0.925);
   gStyle->SetStatY(0.925);
   gStyle->SetStatW(0.3);
   gStyle->SetStatH(0.25);
   gStyle->SetStatFontSize(0.095);
 
-  gStyle->SetLegendTextSize(0.035);//
+  gStyle->SetLegendTextSize(0.055);//
 
   gStyle->SetTitleSize(.045, "xzy");
   gStyle->SetTitleOffset(1.05, "xzy");

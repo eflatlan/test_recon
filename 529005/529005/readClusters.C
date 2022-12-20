@@ -89,8 +89,8 @@ void readClusters(int nEvents) {
 
 
 
-  std::array<std::unique_ptr<TH1F>, 7> hCharge, hMipCharge, hSize;
-  std::array<std::unique_ptr<TH2F>, 7> hMap;
+  std::array<std::unique_ptr<TH1F>, 7> hCharge, hMipCharge, hSize, hMipCharge2;
+  std::array<std::unique_ptr<TH2F>, 7> hMap, hMipMap;
 
   // changeFont();			     // specify folder to save files in
   // SaveFolder("clusterChambers");   // apply custom canvas figure options
@@ -154,21 +154,37 @@ void readClusters(int nEvents) {
     hMipCharge[i]->SetStats(kTRUE);
     //hMipCharge[i]->StatOverflows(kTRUE);
 
+
+    const char* canStringMip2 = Form("MIP-Charge2 %i", i);
+    hMipCharge2[i].reset(new TH1F(canStringMip2, canStringMip2, 50, 200., 2200.));
+    hMipCharge2[i]->SetXTitle("Charge (ADC channel)");
+    hMipCharge2[i]->SetYTitle("Entries/40 ADC");
+    //hMipCharge[i]->SetLineColor(kBlack);
+    hMipCharge2[i]->SetStats(kTRUE);
+    //hMipCharge[i]->StatOverflows(kTRUE);
+
+    const char* canStringMipMap = Form("MIP-Charge Map %i", i);
+    hMipCharge2[i].reset(new TH2F(canStringMipMap, canStringMipMap, 160, 0, 159, 144, 0, 143));
+    hMap[i]->SetXTitle("X (cm)");
+    hMap[i]->SetYTitle("Y (cm)");
+
     const char* canStringSize = Form("Size %i", i);
     hSize[i].reset(new TH1F(canStringSize, canStringSize, 20, 0., 20.));
-
     hSize[i]->SetXTitle("Cluster size");
     hSize[i]->SetYTitle("Entries");
   }
  
 
-  std::array<std::unique_ptr<TCanvas>, 4> canvas;  
+  std::array<std::unique_ptr<TCanvas>, 6> canvas;  
   
   (canvas[0]).reset(new TCanvas(Form("Cluster-Map %i",fname), Form("Cluster-Map %i",fname), 1200, 1200));
   (canvas[1]).reset(new TCanvas(Form("Cluster-Charge %i",fname), Form("Cluster-Charge %i",fname), 1200, 1200));
   (canvas[2]).reset(new TCanvas(Form("MIP Cluster-Charge %i",fname), Form("MIP Cluster-Charge %i",fname),1200, 1200));  
   (canvas[3]).reset(new TCanvas(Form("Cluster-Size %i",fname), Form("Cluster-Size %i",fname), 1200, 1200));
 
+
+  (canvas[4]).reset(new TCanvas(Form("MipLandau %i",fname), Form("MipLandau %i",fname), 1200, 1200));
+  (canvas[5]).reset(new TCanvas(Form("MIP Cluster-Map %i",fname), Form("MIP Cluster-Map %i",fname), 1200, 1200));
 
   Int_t nTotTriggers = 0;
 
@@ -195,10 +211,8 @@ void readClusters(int nEvents) {
       hCharge[module]->Fill((&clus)->q());
       if ((&clus)->size() >= 3 && (&clus)->size() <= 7){
         hMipCharge[module]->Fill((&clus)->q());
-        //MipCharge[module]->Fill((&clus)->q());
-        //hMipRaw[module]->Fill((&clus)->q());
-        
-        //hMipMap[module]->Fill(clus.x(), clus.y());
+        hMipCharge2[module]->Fill((&clus)->q());
+        hMipMap[module]->Fill(clus.x(), clus.y());
       }
       hMap[module]->Fill(clus.x(), clus.y());
 
@@ -210,8 +224,13 @@ void readClusters(int nEvents) {
     Printf("trigger size from clusters = %i", triggerSize);
   
   //auto folderName = fname.c_str();
-  std::array<std::unique_ptr<TPaveText>, 4> tpvs;
+  std::array<std::unique_ptr<TPaveText>, 6> tpvs;
   
+  int n = 0; 
+  for(const auto& hmp : hMipCharge){
+    hMipCharge2[n++] = hmp;
+  }  
+
 
   //fileInfo
   const auto f1 = (fileInfo[0]).c_str();
@@ -225,9 +244,13 @@ void readClusters(int nEvents) {
     tpv->AddText(runLabel);
   }
 
+  tpvs[0]->AddText("Cluster-Map");
   tpvs[1]->AddText("Clusters Charge");
   tpvs[2]->AddText("MIP Clusters Charge");
   tpvs[3]->AddText("Clusters Size");
+
+  tpvs[4]->AddText("MipLandau");
+  tpvs[5]->AddText("MIP Cluster-Map");
 
 
   for(auto& tpv: tpvs){
@@ -237,6 +260,7 @@ void readClusters(int nEvents) {
     //tpv->AddText();
     //tpv->AddText();
   }
+
   const int tpvSize = static_cast<int>(tpvs.size());
   for(int i = 0; i < tpvSize; i++){
     canvas[i]->Divide(3, 3); 
@@ -292,7 +316,7 @@ void readClusters(int nEvents) {
     std::unique_ptr<TPaveText> tPaveStat;
     tPaveStat.reset(new TPaveText(0.05, .05, .9, .9));
     tPaveStat->AddText(Form("Constant %f", 1.0));
-    hMipCharge[iCh]->SetTitle(Form("Constant %03.03f \n MPV %03.03f Sigma %03.03f", Constant, MPV, Sigma));
+    hMipCharge[iCh]->SetTitle(Form("Constant %03.1f \n MPV %03.1f Sigma %03.1f", Constant, MPV, Sigma));
     hMipCharge[iCh]->Draw();
     pad2->Update(); 
     tPaveStat->Draw();
@@ -327,19 +351,46 @@ void readClusters(int nEvents) {
 
     //auto a = (hMipCharge[iCh])->GetFunction(Form("FitFunc%i", iCh));
 
-    //cout << *(a->GetFormula()) << endl;  
+    //cout << *(a->GetFormula()) << endl; 
+
+    auto pad3 = static_cast<TPad*>(canvas[3]->cd(pos));
+    hCharge[iCh]->Draw();
+
+    auto pad4 = static_cast<TPad*>(canvas[4]->cd(pos));
+    hMipCharge2[iCh]->Fit("landau");
+    hMipCharge2[iCh]->Draw();
+
+    auto pad5 = static_cast<TPad*>(canvas[5]->cd(pos));
+    hMipMap[iCh]->Draw();
+
+
 
   }
 
+
+  tpvs[0]->AddText("Cluster-Map");
+  tpvs[1]->AddText("Clusters Charge");
+  tpvs[2]->AddText("MIP Clusters Charge");
+  tpvs[3]->AddText("Cl Size");
+  tpvs[4]->AddText("MipLandau");
+  tpvs[5]->AddText("MIP Cluster-Map");
+
+
+  
+
+  canvas[0]->SaveAs(Form("clusterMap_%i_.eps",fname));
   canvas[1]->SaveAs(Form("clusterCharge_%i_.eps",fname));
   canvas[2]->SaveAs(Form("mipClustesCharge_%i_.eps",fname));
-  canvas[3]->SaveAs(Form("clusterSize_%i_.eps",fname));
+  canvas[3]->SaveAs(Form("ClusterSize%i_.eps",fname));
+  canvas[4]->SaveAs(Form("MipLandau%i_.eps",fname));
+  canvas[5]->SaveAs(Form("MipMap%i_.eps",fname));
 
+  canvas[0]->SaveAs(Form("clusterMap_%i_.png",fname));
   canvas[1]->SaveAs(Form("clusterCharge_%i_.png",fname));
   canvas[2]->SaveAs(Form("mipClustesCharge_%i_.png",fname));
-  canvas[3]->SaveAs(Form("clusterSize_%i_.png",fname));
-  canvas[0]->SaveAs(Form("clusterMap_%i_.png",fname));
-  canvas[0]->SaveAs(Form("clusterMap_%i_.eps",fname));
+  canvas[3]->SaveAs(Form("mipClustesCharge_2%i_.png",fname));
+  canvas[4]->SaveAs(Form("MipLandau%i_.png",fname));
+  canvas[5]->SaveAs(Form("MipMap%i_.png",fname));
 }
 
 //********************************************************************************************************************

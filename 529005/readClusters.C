@@ -286,7 +286,8 @@ void readClusters(int nEvents) {
   TF1::InitStandardFunctions();
   
 
-
+  
+   
   const int posArr[] = {9, 8, 6, 5, 4, 2, 1};
   for (int iCh = 0; iCh < 7; iCh++) {
     const auto& pos = posArr[iCh];
@@ -296,6 +297,9 @@ void readClusters(int nEvents) {
 
     hMap[iCh]->SetMarkerStyle(3);
     hMap[iCh]->Draw();
+    
+    const auto& pTotal = static_cast<float>(100.0f*hMap[iCh]->GetEntries()/clusterSize);
+    hMap[iCh]->SetTitle(Form("Chamber %i  of total = %02.1f", iCh, pTotal));
     gStyle->SetOptStat("mi");
     gStyle->SetStatX(0.975);
     gStyle->SetStatY(0.975);
@@ -306,7 +310,7 @@ void readClusters(int nEvents) {
     hCharge[iCh]->Draw();
     
     changeFont();
-
+ 
 
     auto pad2 = static_cast<TPad*>(canvas[2]->cd(pos));
     hMipCharge[iCh]->SetStats(kTRUE);

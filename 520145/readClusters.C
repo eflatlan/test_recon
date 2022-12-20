@@ -136,8 +136,8 @@ void readClusters(int nEvents) {
   for (int i = 0; i < 7; i++) {
 
     const char* canStringMip = Form("MIP-Charge %i", i);
-    //hMipCharge[i].reset(new TH1F(canStringMip, canStringMip, 50, 200., 2200.));
     hMipCharge[i].reset(new TH1F(canStringMip, canStringMip, 50, 200., 2200.));
+    //hMipCharge[i].reset(new TH1F(canStringMip, canStringMip, 500, 200., 2200.));
     hMipCharge[i]->SetXTitle("Charge (ADC channel)");
     hMipCharge[i]->SetYTitle("Entries/40 ADC");
     hMipCharge[i]->SetStats(kTRUE);
@@ -278,7 +278,7 @@ void readClusters(int nEvents) {
 
     pad5->SetBottomMargin(.0015+pad5->GetBottomMargin());
     pad5->SetRightMargin(-.0025+pad5->GetRightMargin());
-    digMap[iCh]->SetTitle(Form("Ch%i % of total = %02.0f", iCh, pTotalDigs));
+    digMap[iCh]->SetTitle(Form("Chamber%i; Percentage of total = %02.0f", iCh, pTotalDigs));
     digMap[iCh]->Draw();
   }
   gStyle->SetOptStat("e");
@@ -535,7 +535,7 @@ void changeFont()
   gStyle->SetStatW(0.3);
   gStyle->SetStatH(0.25);
   gStyle->SetStatFontSize(0.065);
-  gStyle->SetLegendTextSize(0.065);//
+  gStyle->SetLegendTextSize(0.08);//
 
   gStyle->SetTitleSize(.055, "xzy");
   gStyle->SetTitleOffset(.925, "xz");//.95

@@ -272,6 +272,8 @@ void readClusters(int nEvents) {
     auto pad5 = static_cast<TPad*>(canvas[2]->cd(pos));
     pad5->SetLeftMargin(+.025+pad5->GetLeftMargin());
     const auto& pTotalDigs = static_cast<float>(100.0f*digMap[iCh]->GetEntries()/digSize);
+
+    digMap[iCh]->SetLabelOffset(digMap[iCh]->SetLabelOffset("x")+0.001, "x");
     digMap[iCh]->SetTitle(Form("Chamber %i  of total = %02.1f", iCh, pTotalDigs));
     digMap[iCh]->Draw();
   }

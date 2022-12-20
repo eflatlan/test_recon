@@ -730,18 +730,18 @@ void changeFont()
   gStyle->SetStatY(0.925);
   gStyle->SetStatW(0.3);
   gStyle->SetStatH(0.25);
-  gStyle->SetStatFontSize(0.085);
+  gStyle->SetStatFontSize(0.065);
   gStyle->SetLegendTextSize(0.065);//
 
-  gStyle->SetTitleSize(.055, "xzy");
-  gStyle->SetTitleOffset(1.05, "xzy");
-  gStyle->SetTitleOffset(1.25, "y");//1.05
+  gStyle->SetTitleSize(.0505, "xzy");
+  gStyle->SetTitleOffset(.925, "xz");//.95
+  gStyle->SetTitleOffset(1, "y");//1.1
   gStyle->SetTitleFontSize(.05);
   //gStyle->SetTitleFont(16, "xz");
   
   gStyle->SetLabelOffset(0.00625, "y");
   gStyle->SetLabelFont(22, "xyz");
-  gStyle->SetLabelSize(.0625, "xyz"); //.055 // verdi av akser
+  gStyle->SetLabelSize(.05, "xyz"); //.0525 // verdi av akser
 
 
   //mStyle->SetStyle("canvasStyle");

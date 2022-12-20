@@ -30,6 +30,7 @@
 
 // C++ header files and libraries
 #include <chrono>
+#include <thread>
 #include <ctime>
 #include <fstream>
 #include <iostream>
@@ -43,8 +44,8 @@
 #endif
 
 
-
-using std::vector, std::cout, std::endl;
+using std::this_thread::sleep_for;
+using std::vector, std::cout, std::cin, std::endl;
 using o2::hmpid::Cluster, o2::hmpid::Digit, o2::hmpid::Trigger, o2::hmpid::Clusterer;
 
 std::vector<o2::hmpid::Digit> mDigitsFromFile,
@@ -383,14 +384,44 @@ void readClusters(int nEvents) {
   canvas[2]->SaveAs(Form("mipClustesCharge_%i_.eps",fname));
   canvas[3]->SaveAs(Form("ClusterSize%i_.eps",fname));
   canvas[4]->SaveAs(Form("MipMap%i_.eps",fname));
-  //mipCanvasRaw->SaveAs(Form("MipLandau%i_.eps",fname));
+  mipCanvasRaw->SaveAs(Form("MipLandau%i_.eps",fname));
 
   canvas[0]->SaveAs(Form("clusterMap_%i_.png",fname));
   canvas[1]->SaveAs(Form("clusterCharge_%i_.png",fname));
   canvas[2]->SaveAs(Form("mipClustesCharge_%i_.png",fname));
   canvas[3]->SaveAs(Form("mipClustesCharge_2%i_.png",fname));
   canvas[4]->SaveAs(Form("MipMap%i_.png",fname));
-  //mipCanvasRaw->SaveAs(Form("MipLandau%i_.png",fname));	
+
+
+  sleep_for(5000ms);
+
+  bool userInput = false;
+  while(!userInput){
+    sleep_for(5000ms);
+    string uInputString;
+    sleep_for(50ms);
+    cin >> uInputString;
+    if(uInputString == "C"){
+      userInput = true;
+    }
+    sleep_for(1000ms);
+    if(userInput){
+      cout << "Got End fro User.. Exiting!";
+      mipCanvasRaw->SaveAs(Form("MipLandau%i_.png",fname));
+      canvas[0]->SaveAs(Form("clusterMap_%i_.eps",fname));
+      canvas[1]->SaveAs(Form("clusterCharge_%i_.eps",fname));
+      canvas[2]->SaveAs(Form("mipClustesCharge_%i_.eps",fname));
+      canvas[3]->SaveAs(Form("ClusterSize%i_.eps",fname));
+      canvas[4]->SaveAs(Form("MipMap%i_.eps",fname));
+      mipCanvasRaw->SaveAs(Form("MipLandau%i_.eps",fname));
+
+      canvas[0]->SaveAs(Form("clusterMap_%i_.png",fname));
+      canvas[1]->SaveAs(Form("clusterCharge_%i_.png",fname));
+      canvas[2]->SaveAs(Form("mipClustesCharge_%i_.png",fname));
+      canvas[3]->SaveAs(Form("mipClustesCharge_2%i_.png",fname));
+      canvas[4]->SaveAs(Form("MipMap%i_.png",fname));
+    }
+  }
 }
 
 //********************************************************************************************************************
@@ -695,24 +726,22 @@ void changeFont()
   mStyle.reset(new TStyle("canvasStyle", "Canvas Root Styles"));
   */ 
 
-
   gStyle->SetStatX(0.925);
   gStyle->SetStatY(0.925);
   gStyle->SetStatW(0.3);
   gStyle->SetStatH(0.25);
-  gStyle->SetStatFontSize(0.095);
+  gStyle->SetStatFontSize(0.085);
+  gStyle->SetLegendTextSize(0.065);//
 
-  gStyle->SetLegendTextSize(0.055);//
-
-  gStyle->SetTitleSize(.045, "xzy");
+  gStyle->SetTitleSize(.055, "xzy");
   gStyle->SetTitleOffset(1.05, "xzy");
   gStyle->SetTitleOffset(1.25, "y");//1.05
-  gStyle->SetTitleFontSize(.045);
+  gStyle->SetTitleFontSize(.05);
   //gStyle->SetTitleFont(16, "xz");
   
   gStyle->SetLabelOffset(0.00625, "y");
   gStyle->SetLabelFont(22, "xyz");
-  gStyle->SetLabelSize(.0425, "xyz"); //.055 // verdi av akser
+  gStyle->SetLabelSize(.0625, "xyz"); //.055 // verdi av akser
 
 
   //mStyle->SetStyle("canvasStyle");

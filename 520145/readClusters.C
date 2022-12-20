@@ -259,8 +259,8 @@ void readClusters(int nEvents) {
   }
   changeFont();    
 
-  gStyle->SetStatX(0.975);
-  gStyle->SetStatY(0.975);
+  gStyle->SetStatX(0.95);
+  gStyle->SetStatY(0.9);
   gStyle->SetStatW(0.3);
   gStyle->SetStatH(0.3); 
     
@@ -270,11 +270,15 @@ void readClusters(int nEvents) {
     const auto& pos = posArr[iCh];
     // ========== Digit MAP =========================
     auto pad5 = static_cast<TPad*>(canvas[2]->cd(pos));
-    pad5->SetLeftMargin(+.025+pad5->GetLeftMargin());
+    //pad5->SetLeftMargin(+.025+pad5->GetLeftMargin());
     const auto& pTotalDigs = static_cast<float>(100.0f*digMap[iCh]->GetEntries()/digSize);
+    digMap[iCh]->SetLabelOffset(digMap[iCh]->GetLabelOffset("y")-0.0015, "y");
+    digMap[iCh]->SetTitleOffset(digMap[iCh]->GetTitleOffset("y")-0.0015, "y");
+    digMap[iCh]->SetTitleOffset(digMap[iCh]->GetTitleOffset("x")-0.0005, "x");
 
-    digMap[iCh]->SetLabelOffset(digMap[iCh]->SetLabelOffset("x")+0.001, "x");
-    digMap[iCh]->SetTitle(Form("Chamber %i  of total = %02.1f", iCh, pTotalDigs));
+    pad5->SetBottomMargin(.0015+pad5->GetBottomMargin());
+    pad5->SetRightMargin(-.0025+pad5->GetRightMargin());
+    digMap[iCh]->SetTitle(Form("Ch%i % of total = %02.0f", iCh, pTotalDigs));
     digMap[iCh]->Draw();
   }
   gStyle->SetOptStat("e");
@@ -292,9 +296,11 @@ void readClusters(int nEvents) {
     // ========== MIP Charge =========================
     auto pad0 = static_cast<TPad*>(canvas[0]->cd(pos)); // Constant*TMath::Landau(1, [MPV], sigma, 0)
 
-
-    pad0->SetLeftMargin(-.025+pad0->GetLeftMargin());
+    pad0->SetLeftMargin(-.005+pad0->GetLeftMargin());
+    pad0->SetRightMargin(-.005+pad0->GetRightMargin());
     hMipCharge[iCh]->Fit("landau", "I"); // I = fit by integral
+    hMipCharge[iCh]->SetLabelOffset(hMipCharge[iCh]->GetLabelOffset("y")-0.0025, "y");
+    hMipCharge[iCh]->SetTitleOffset(0.75, "y");
     //hMipCharge[iCh]->SetTitle(Form("Constant %03.1f \n MPV %03.1f Sigma %03.1f", Constant, MPV, Sigma));
     hMipCharge[iCh]->Draw();
     hMipCharge[iCh]->FitPanel();
@@ -310,7 +316,10 @@ void readClusters(int nEvents) {
 
     // ========== Digit Charge =========================
     auto pad3 = static_cast<TPad*>(canvas[1]->cd(pos));
-    pad3->SetLeftMargin(+.025+pad3->GetLeftMargin());
+    pad3->SetLeftMargin(.05+pad3->GetLeftMargin());
+    digCharge[iCh]->SetLabelOffset(digCharge[iCh]->GetLabelOffset("y")+0.0015, "y");
+    digCharge[iCh]->SetTitleOffset(1.2,"y");
+    pad3->SetRightMargin(-.0025+pad3->GetRightMargin());
     digCharge[iCh]->Draw();
   }
   gStyle->SetStatH(0.2); 
@@ -522,7 +531,7 @@ void changeFont()
   */ 
 
   gStyle->SetStatX(0.925);
-  gStyle->SetStatY(0.925);
+  gStyle->SetStatY(0.9);
   gStyle->SetStatW(0.3);
   gStyle->SetStatH(0.25);
   gStyle->SetStatFontSize(0.065);

@@ -666,6 +666,8 @@
 ./readClusters_C.so: /root/alice/sw/slc8_x86-64/ROOT/v6-26-10-alice4-2/include/TArrayF.h
 ./readClusters_C.so: /root/alice/sw/slc8_x86-64/ROOT/v6-26-10-alice4-2/include/Foption.h
 ./readClusters_C.so: /root/alice/sw/slc8_x86-64/ROOT/v6-26-10-alice4-2/include/ROOT/EExecutionPolicy.hxx
+./readClusters_C.so: /root/alice/sw/slc8_x86-64/ROOT/v6-26-10-alice4-2/include/TApplication.h
+./readClusters_C.so: /root/alice/sw/slc8_x86-64/ROOT/v6-26-10-alice4-2/include/TApplicationImp.h
 ./readClusters_C.so: /root/alice/sw/slc8_x86-64/ROOT/v6-26-10-alice4-2/include/TF1.h
 ./readClusters_C.so: /root/alice/sw/slc8_x86-64/ROOT/v6-26-10-alice4-2/include/TFormula.h
 ./readClusters_C.so: /root/alice/sw/slc8_x86-64/ROOT/v6-26-10-alice4-2/include/TBits.h
@@ -682,6 +684,9 @@
 ./readClusters_C.so: /root/alice/sw/slc8_x86-64/ROOT/v6-26-10-alice4-2/include/TBox.h
 ./readClusters_C.so: /root/alice/sw/slc8_x86-64/ROOT/v6-26-10-alice4-2/include/TText.h
 ./readClusters_C.so: /root/alice/sw/slc8_x86-64/ROOT/v6-26-10-alice4-2/include/TAttText.h
+./readClusters_C.so: /root/alice/sw/slc8_x86-64/ROOT/v6-26-10-alice4-2/include/TPaveStats.h
+./readClusters_C.so: /root/alice/sw/slc8_x86-64/ROOT/v6-26-10-alice4-2/include/TVirtualPaveStats.h
+./readClusters_C.so: /root/alice/sw/slc8_x86-64/ROOT/v6-26-10-alice4-2/include/TLatex.h
 ./readClusters_C.so: /root/alice/sw/slc8_x86-64/ROOT/v6-26-10-alice4-2/include/TRandom.h
 ./readClusters_C.so: /root/alice/sw/slc8_x86-64/ROOT/v6-26-10-alice4-2/include/Math/TRandomEngine.h
 ./readClusters_C.so: /root/alice/sw/slc8_x86-64/ROOT/v6-26-10-alice4-2/include/TStyle.h

@@ -284,7 +284,7 @@ void readClusters(int nEvents) {
     pad5->SetBottomMargin(.0015+pad5->GetBottomMargin());
     pad5->SetRightMargin(-.0025+pad5->GetRightMargin());
     digMap[iCh]->SetTitle(Form("Chamber %i Percentage of total = %02.0f", iCh, pTotalDigs));
-    digMap[iCh]->Draw();
+    digMap[iCh]->Draw("Colz");
   }
   gStyle->SetOptStat("e");
 

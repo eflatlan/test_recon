@@ -143,7 +143,7 @@ void readClusters(int nEvents) {
     hMipCharge[i]->SetStats(kTRUE);
 
     const char* canStringSize = Form("Digit Charge %i", i);
-    digCharge[i].reset(new TH1F(canStringSize, canStringSize, 2000, 100., 2100.));
+    digCharge[i].reset(new TH1F(canStringSize, canStringSize, 50, 200., 2200.));
     digCharge[i]->SetXTitle("Charge (ADC channel)");
     digCharge[i]->SetYTitle("Entries/40 ADC");
     digCharge[i]->SetLabelOffset(0.0065, "y");
@@ -278,7 +278,7 @@ void readClusters(int nEvents) {
 
     pad5->SetBottomMargin(.0015+pad5->GetBottomMargin());
     pad5->SetRightMargin(-.0025+pad5->GetRightMargin());
-    digMap[iCh]->SetTitle(Form("Chamber%i; Percentage of total = %02.0f", iCh, pTotalDigs));
+    digMap[iCh]->SetTitle(Form("Chamber %i Percentage of total = %02.0f", iCh, pTotalDigs));
     digMap[iCh]->Draw();
   }
   gStyle->SetOptStat("e");
@@ -296,11 +296,12 @@ void readClusters(int nEvents) {
     // ========== MIP Charge =========================
     auto pad0 = static_cast<TPad*>(canvas[0]->cd(pos)); // Constant*TMath::Landau(1, [MPV], sigma, 0)
 
-    pad0->SetLeftMargin(-.005+pad0->GetLeftMargin());
+    pad0->SetLeftMargin(-.0025+pad0->GetLeftMargin());
     pad0->SetRightMargin(-.005+pad0->GetRightMargin());
+    pad0->SetBottomMargin(.0025+pad0->GetBottomMargin());
     hMipCharge[iCh]->Fit("landau", "I"); // I = fit by integral
     hMipCharge[iCh]->SetLabelOffset(hMipCharge[iCh]->GetLabelOffset("y")-0.0025, "y");
-    hMipCharge[iCh]->SetTitleOffset(0.75, "y");
+    hMipCharge[iCh]->SetTitleOffset(0.8, "y");
     //hMipCharge[iCh]->SetTitle(Form("Constant %03.1f \n MPV %03.1f Sigma %03.1f", Constant, MPV, Sigma));
     hMipCharge[iCh]->Draw();
     hMipCharge[iCh]->FitPanel();
@@ -316,6 +317,7 @@ void readClusters(int nEvents) {
 
     // ========== Digit Charge =========================
     auto pad3 = static_cast<TPad*>(canvas[1]->cd(pos));
+    pad3->SetBottomMargin(.0025+pad3->GetBottomMargin());
     pad3->SetLeftMargin(.05+pad3->GetLeftMargin());
     digCharge[iCh]->SetLabelOffset(digCharge[iCh]->GetLabelOffset("y")+0.0015, "y");
     digCharge[iCh]->SetTitleOffset(1.2,"y");

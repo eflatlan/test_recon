@@ -44,3 +44,31 @@ alien_find /alice/data/year/LHC22t/529691/ *.tf | perl -p -e 's/^\/alice/alien:\
 
 
 
+
+
+# Suggestions to add
+Avg charge Distribution per chamber
+Mask of Digits with high charge
+Cluster/dig and cluster/trig Ratios
+
+
+Luminosity Condition  @ Trigger Time correlated with MPV v Time
+
+DigMap: Normalize %percentages wrt Acceptance + Active Surface
+
+Occupancy Histogram
+
+
+Triggers Per Chunk
+-> Can we use 1D hist / Graph of trigger-times?
+
+
+
+
+
+
+
+
+
+
+

@@ -309,7 +309,7 @@ void readClusters(int nEvents) {
 
   gStyle->SetStatW(0.3);
   gStyle->SetStatH(0.6); 
-  gStyle->SetOptStat("emr");
+  gStyle->SetOptStat("eimr");
   gStyle->SetLabelOffset(0.00525, "y");
 
   for (int iCh = 0; iCh < 7; iCh++) {

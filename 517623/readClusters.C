@@ -28,6 +28,9 @@
 #include <vector>
 #include <fairlogger/Logger.h>
 
+
+#include "CommonDataFormat/InteractionRecord.h"
+
 // C++ header files and libraries
 #include <chrono>
 #include <thread>
@@ -47,6 +50,8 @@
 using std::this_thread::sleep_for;
 using std::vector, std::cout, std::cin, std::endl;
 using o2::hmpid::Cluster, o2::hmpid::Digit, o2::hmpid::Trigger, o2::hmpid::Clusterer;
+
+using o2::InteractionRecord;
 
 std::vector<o2::hmpid::Digit> mDigitsFromFile,
 *mDigitsFromFilePtr = &mDigitsFromFile;
@@ -143,7 +148,7 @@ void readClusters(int nEvents) {
     hMipCharge[i]->SetStats(kTRUE);
 
     const char* canStringSize = Form("Digit Charge %i", i);
-    digCharge[i].reset(new TH1F(canStringSize, canStringSize, 50, 200., 2200.));
+    digCharge[i].reset(new TH1F(canStringSize, canStringSize, 50, 0., 400.));
     digCharge[i]->SetXTitle("Charge (ADC channel)");
     digCharge[i]->SetYTitle("Entries/40 ADC");
     digCharge[i]->SetLabelOffset(0.0065, "y");
@@ -430,7 +435,7 @@ vector<string> dig2Clus(const std::string &fileName, vector<Cluster>& clusters, 
   clusters.clear();
   clusterTriggers.clear();
   cout << "[HMPID DClusterization - run() ] Entries  = " << mTree->GetEntries() << endl; 
-
+  double durMin = 0.0;
   // check if more entries in tree
   if (mTree->GetReadEntry() + 1 >= mTree->GetEntries()) {
     //mDigitsReceived, mClustersReceived, mTriggersReceived = 0;
@@ -440,8 +445,37 @@ vector<string> dig2Clus(const std::string &fileName, vector<Cluster>& clusters, 
     assert(entry < mTree->GetEntries());
     mTree->GetEntry(entry);
         
-    firstTrigger = (mTriggersFromFilePtr->at(0)).getOrbit();
-    lastTrigger = (mTriggersFromFilePtr->back()).getOrbit();
+
+   
+    const auto& firstTriggerOrbit = (mTriggersFromFilePtr->at(0)).getOrbit();
+    const auto& lastTriggerOrbit = (mTriggersFromFilePtr->back()).getOrbit();
+
+    const auto& firstTriggerBC = (mTriggersFromFilePtr->at(0)).getBc();
+    const auto& lastTriggerBC = (mTriggersFromFilePtr->back()).getBc();
+
+    const auto& firstTrigNS = InteractionRecord::bc2ns(firstTriggerBC, firstTriggerOrbit);
+    const auto& lastTrigNS = InteractionRecord::bc2ns(lastTriggerBC, lastTriggerOrbit);
+
+    cout << "First [Orbit, BC, NS]" << endl;
+    cout << firstTriggerOrbit << endl;
+    cout << firstTriggerBC << endl;
+    cout << firstTrigNS << endl;
+
+    cout << "Last [Orbit, BC, NS]" << endl;
+    cout << lastTriggerOrbit << endl;
+    cout << lastTriggerBC << endl;
+    cout << lastTrigNS << endl;
+
+
+
+
+    double durSec = static_cast<double>((lastTrigNS - firstTrigNS)/1000000000);
+    durMin = static_cast<double>(durSec / 60.0);
+
+    cout << "durSec" << endl;
+    cout << durSec << endl;
+    cout << "durMin" << endl;
+    cout << durMin << endl;
 
     for (const auto &trig : *mTriggersFromFilePtr) {
       if (trig.getNumberOfObjects()) {
@@ -477,10 +511,9 @@ vector<string> dig2Clus(const std::string &fileName, vector<Cluster>& clusters, 
               numDigits, numClusters);
   //const auto trigger = Form("First Entry %i Last %i", firstTrigger, lastTrigger);
   
-  int durSec = static_cast<int>((lastTrigger - firstTrigger)/1000);
-  auto durMin = durSec%60;
+
   
-  const auto durInfo = Form("Duration of triggers = %i min", durMin);
+  const auto durInfo = Form("Duration of triggers = %f min", durMin);
   return  {trigInfo, digClusInfo, durInfo};
 }
 void initFileIn(const std::string &filename) {

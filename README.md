@@ -20,5 +20,27 @@ To fetch run
 	o2-hmpid-raw-to-digits-stream-workflow --fast-decode --ignore-dist-stf --get-results-statistics -b|  
 	o2-hmpid-digits-to-clusters-workflow --write-to-file -b --out-file hmpclus15.root
 
+Digit  
+
+
+	o2-raw-tf-reader-workflow --input-data tfs_529005.lst --max-tf 180 --delay 200  --onlyDet HMP -b  5 |
+	o2-hmpid-raw-to-digits-stream-workflow --fast-decode --ignore-dist-stf --get-results-statistics -b |
+ 	o2-hmpid-digits-to-root-workflow -b --out-file hmp529005_Dig_180.root
+
+
+
+	o2-raw-tf-reader-workflow --input-data tfs_529691.lst --max-tf 120 --delay 800  --onlyDet HMP -b |
+	o2-hmpid-raw-to-digits-stream-workflow --fast-decode --ignore-dist-stf --get-results-statistics -b |
+ 	o2-hmpid-digits-to-root-workflow -b --out-file hmp529691_Dig_120.root
+
+
+LHC22t/529691
+
+LHC22q/529005
+
+
+alien_find /alice/data/year/LHC22t/529691/ *.tf | perl -p -e 's/^\/alice/alien:\/\/\/alice/' | tee tfs_529691.lst
+
+
 
 

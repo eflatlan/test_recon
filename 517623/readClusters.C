@@ -93,6 +93,8 @@ void readClusters(int nEvents) {
 
   auto runNumber = (gwd.substr(gwd.length() - 9, gwd.length()));
 
+  //std::array<std::unique_ptr<TGraph>, 7> trigGraph;
+  
   std::array<std::unique_ptr<TH1F>, 7> digCharge, hMipCharge;
   std::array<std::unique_ptr<TH2F>, 7> digMap;
 
@@ -159,6 +161,11 @@ void readClusters(int nEvents) {
     //digMap[i].reset(new TH2F(canDigMap, canDigMap, 160*0.8, 0, 159*0.8, 144*0.8, 0, 160*0.8));
     digMap[i]->SetXTitle("x [cm]");
     digMap[i]->SetYTitle("y [cm]");
+
+
+    //const char* canDigMap = Form("Digit Map %i", i);
+    //strigGraph.reset(new TGraph(, , 160, 0, 159, 144, 0, 143));
+
   }
  
 
@@ -182,9 +189,9 @@ void readClusters(int nEvents) {
   Int_t nTotTriggers = 0;
 
     std::unique_ptr<Trigger> pTgr;
-    std::unique_ptr<Cluster> pClu;
-    std::unique_ptr<Cluster> pCluEvt;
-    std::unique_ptr<Cluster> cluster;
+    std::unique_ptr<Cluster> pClu, pCluEvt, cluster;
+    //std::unique_ptr<Cluster> pCluEvt;
+    //std::unique_ptr<Cluster> cluster;
 
     //vector<Cluster> *pClusters = &clusters;
     vector<Cluster> oneEventClusters;
@@ -237,23 +244,31 @@ void readClusters(int nEvents) {
   const auto f1 = (fileInfo[0]).c_str();
   const auto f2 = (fileInfo[1]).c_str();
   const auto f3 = (fileInfo[2]).c_str();
+  const auto f4 = (fileInfo[3]).c_str();
 
   //const char* runLabel = Form("%i  Duration = %s", fname, f1);
   const char* runLabel = Form("%i", fname);
+
+
+  vector<const char*> tpvTexts{"MIP Clusters Charge", "Digits-Charge", "Digits-Map"};
+
+  int j = 0;
   for(auto& tpv: tpvs){
     tpv.reset(new TPaveText(0.05, .05, .9, .9));
-    tpv->AddText(runLabel);
+    tpv->AddText(Form("%s %s", runLabel, tpvTexts[j++]));
   }
 
+  /*
   tpvs[0]->AddText("MIP Clusters Charge");
   tpvs[1]->AddText("Digits-Charge");
-  tpvs[2]->AddText("Digits-Map");
+  tpvs[2]->AddText("Digits-Map"); */ 
 
 
   for(auto& tpv: tpvs){
     tpv->AddText(f1);
     tpv->AddText(f2);
     tpv->AddText(f3);
+    tpv->AddText(f4);
   }
 
   const int tpvSize = static_cast<int>(tpvs.size());
@@ -456,26 +471,10 @@ vector<string> dig2Clus(const std::string &fileName, vector<Cluster>& clusters, 
     const auto& firstTrigNS = InteractionRecord::bc2ns(firstTriggerBC, firstTriggerOrbit);
     const auto& lastTrigNS = InteractionRecord::bc2ns(lastTriggerBC, lastTriggerOrbit);
 
-    cout << "First [Orbit, BC, NS]" << endl;
-    cout << firstTriggerOrbit << endl;
-    cout << firstTriggerBC << endl;
-    cout << firstTrigNS << endl;
-
-    cout << "Last [Orbit, BC, NS]" << endl;
-    cout << lastTriggerOrbit << endl;
-    cout << lastTriggerBC << endl;
-    cout << lastTrigNS << endl;
-
-
-
 
     double durSec = static_cast<double>((lastTrigNS - firstTrigNS)/1000000000);
     durMin = static_cast<double>(durSec / 60.0);
 
-    cout << "durSec" << endl;
-    cout << durSec << endl;
-    cout << "durMin" << endl;
-    cout << durMin << endl;
 
     for (const auto &trig : *mTriggersFromFilePtr) {
       if (trig.getNumberOfObjects()) {
@@ -504,7 +503,16 @@ vector<string> dig2Clus(const std::string &fileName, vector<Cluster>& clusters, 
   const int numTriggers = static_cast<int>(mTriggersReceived);
   const int numDigits = static_cast<int>(mDigitsReceived);
   const int numClusters = static_cast<int>(mClustersReceived);
-  
+
+  const float digClusRatio = static_cast<float>(1.0f*numDigits/numClusters*1.0f);
+  const float digTrigRatio = static_cast<float>(1.0f*numDigits/numTriggers*1.0f);
+
+
+
+  cout << "digClusRatio" << digClusRatio << endl;
+  cout << "digTrigRatio" << digTrigRatio << endl;
+
+  const auto& ratioInfo = Form("Dig/Clus = %.2f Dig/Triggers= %.0f", digClusRatio, digTrigRatio); 
 
   const auto& trigInfo = Form("Triggers %i" , numTriggers); 
   const auto& digClusInfo = Form("Digits %i Clusters %i",
@@ -513,8 +521,8 @@ vector<string> dig2Clus(const std::string &fileName, vector<Cluster>& clusters, 
   
 
   
-  const auto durInfo = Form("Duration of triggers = %f min", durMin);
-  return  {trigInfo, digClusInfo, durInfo};
+  const auto durInfo = Form("Duration of triggers = %.2f min", durMin);
+  return  {trigInfo, digClusInfo, ratioInfo, durInfo};
 }
 void initFileIn(const std::string &filename) {
  

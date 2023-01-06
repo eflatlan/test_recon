@@ -121,7 +121,7 @@ void readClusters(int nEvents)
   for(int chamber = 0; chamber < 7; chamber++){
   for(int x = 0; x < 160; x++){
     for(int y = 0; y < 144; y++){
-      if(!padDigOff[chamber][x][y])
+      if(padDigOff[chamber][x][y])
       {cout << "False padDigOff " << chamber << " x " << x << " y " << y << endl;}
     }
   }}
@@ -442,7 +442,7 @@ void readClusters(int nEvents)
     //pad5->SetLeftMargin(+.025+pad5->GetLeftMargin());
     pad5->SetBottomMargin(.0015+pad5->GetBottomMargin());
     pad5->SetRightMargin(-.0025+pad5->GetRightMargin());
-    digPerEvent[iCh]->Draw();
+    digPerEvent[iCh]->Draw("*"); // ef : need to remove *?
   }
 
   

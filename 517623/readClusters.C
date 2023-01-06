@@ -115,9 +115,16 @@ void readClusters(int nEvents)
 
   
   // do not fill high values for selected values
-  bool padDigOff[7][160][144] = {true};
+  bool padDigOff[7][160][144] = {{{false}}};
   setPadChannel(padDigOff, 6, 141, 150, 105, 110); // chamber, xLow, xHigh, yLow,  yHigh
-
+  
+  for(int chamber = 0; chamber < 7; chamber++){
+  for(int x = 0; x < 160; x++){
+    for(int y = 0; y < 144; y++){
+      if(!padDigOff[chamber][x][y])
+      {cout << "False padDigOff " << chamber << " x " << x << " y " << y << endl;}
+    }
+  }}
 
   vector<Cluster> clusters; vector<Trigger> clusterTriggers;
   vector<Digit> digits;
@@ -736,10 +743,9 @@ void setPadChannel(bool (&padDigOff)[7][160][144], int chamber, int xLow, int xH
   for(int x = xLow; x < xHigh; x++){
     for(int y = yLow; y < yHigh; y++){
       padDigOff[chamber][x][y] = false;
-      cout << "False padDigOff " << chamber << " x " << x << " y " << y << endl;
+
     }
   }
-
 }
 
 

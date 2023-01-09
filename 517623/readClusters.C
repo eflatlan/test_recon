@@ -84,7 +84,7 @@ void strToFloatsSplit(std::string s, std::string delimiter, float *res,
 #include <string>
 namespace fs = std::filesystem;
 
-
+bool padDig[7][160][144] = {{{true}}};
 
 void setPadChannel(bool (&padDigOff)[7][160][144], int chamber, int xLow, int xHigh, int yLow, int yHigh);
 
@@ -105,7 +105,7 @@ void readClusters(int nEvents)
   std::array<std::unique_ptr<TGraph>, 7> trigGraph;
   
   std::array<std::unique_ptr<TH1F>, 7> digCharge, hMipCharge, digPerEvent;
-  std::array<std::unique_ptr<TH2F>, 7> digMap, digMapAvg;
+  std::array<std::unique_ptr<TH2F>, 7> digMap, digMapAvg, digMapCount;
 
 
   std::unique_ptr<TGraph> trigTime;
@@ -113,15 +113,25 @@ void readClusters(int nEvents)
   // changeFont();			     // specify folder to save files in
   // SaveFolder("clusterChambers");   // apply custom canvas figure options
 
-  
+
   // do not fill high values for selected values
-  bool padDigOff[7][160][144] = {{{false}}};
+  bool padDigOff[7][160][144] = {{{true}}};
+  for(int chamber = 0; chamber < 7; chamber++){
+    for(int x = 0; x < 160; x++){
+      for(int y = 0; y < 144; y++){
+        padDig[chamber][x][y] = true;
+      }
+    }
+  }
+  
+
+
   setPadChannel(padDigOff, 6, 141, 150, 105, 110); // chamber, xLow, xHigh, yLow,  yHigh
   
   for(int chamber = 0; chamber < 7; chamber++){
   for(int x = 0; x < 160; x++){
     for(int y = 0; y < 144; y++){
-      if(padDigOff[chamber][x][y])
+      if(!padDig[chamber][x][y])
       {cout << "False padDigOff " << chamber << " x " << x << " y " << y << endl;}
     }
   }}
@@ -192,6 +202,15 @@ void readClusters(int nEvents)
     digMapAvg[i]->SetXTitle("x [cm]");
     digMapAvg[i]->SetYTitle("y [cm]");
 
+
+    const char* canDigCount = Form("DigMap Count %i", i);
+    digMapCount[i].reset(new TH2F(canDigCount, canDigCount, 160, 0, 159, 144, 0, 143));
+    //digMap[i].reset(new TH2F(canDigMap, canDigMap, 160*0.8, 0, 159*0.8, 144*0.8, 0, 160*0.8));
+    digMapCount[i]->SetXTitle("x [cm]");
+    digMapCount[i]->SetYTitle("y [cm]");
+
+
+    
     //const char* canDigMap = Form("Digit Map %i", i);
     //strigGraph.reset(new TGraph(, , 160, 0, 159, 144, 0, 143));
 
@@ -270,10 +289,10 @@ void readClusters(int nEvents)
         Digit::pad2Absolute(dig.getPadID(), &module, &padChX, &padChY);
 	digPerEvent[module]->Fill(trigNum);
       }
+
       tprev = time;
       trigPrev = trig;
       trigNum++; 
-
 
     }
      
@@ -281,20 +300,21 @@ void readClusters(int nEvents)
     for(const auto& dig : digits){
       Digit::pad2Absolute(dig.getPadID(), &module, &padChX, &padChY);
 
-      if(padDigOff[module][padChX][padChY] == true){
+      if(padDig[module][padChX][padChY] == true){
         digCharge[module]->Fill(dig.getQ());
-        digMapAvg[module]->Fill(padChX, padChY, 500);
       }
 
       digMap[module]->Fill(padChX, padChY, dig.getQ());
+      digMapCount[module]->Fill(padChX, padChY);
       //digMap[module]->Fill(padChX, padChY, padDigOff[module][padChX][padChY]);
       //padDigits[module][padChX][padChY] += dig.getQ();
     }
 
     const int clusterSize = clusters.size();
     Printf("clusters size = %i", clusterSize);
-    
+     
 
+    
 
     float minCharge = 9999.0f; float maxCharge = 0.0f;
 
@@ -398,8 +418,22 @@ void readClusters(int nEvents)
   }
 
 
+  for(int chamber = 0; chamber < 7; chamber++){
+    for(int x = 0; x < 160; x++){
+      for(int y = 0; y < 144; y++){
+        if(digMapCount[chamber]->GetBinContent(x,y) == 0) {
+	  continue;
+        }
+        const auto& val = (digMap[chamber]->GetBinContent(x,y))/(digMapCount[chamber]->GetBinContent(x,y));
+        digMapAvg[chamber]->Fill(x, y, val);
+      }
+    }
+  }
+
+
   // avg digits charge
   for (int iCh = 0; iCh < 7; iCh++) {
+    //(*digMapAvg[iCh]) = (*digMap[iCh])/(*digMapCount[iCh]);
     const auto& pos = posArr[iCh];
     // ========== Digit MAP =========================
     auto pad5 = static_cast<TPad*>(canvas[3]->cd(pos));
@@ -442,7 +476,7 @@ void readClusters(int nEvents)
     //pad5->SetLeftMargin(+.025+pad5->GetLeftMargin());
     pad5->SetBottomMargin(.0015+pad5->GetBottomMargin());
     pad5->SetRightMargin(-.0025+pad5->GetRightMargin());
-    digPerEvent[iCh]->Draw("*"); // ef : need to remove *?
+    digPerEvent[iCh]->Draw();
   }
 
   
@@ -585,21 +619,13 @@ vector<string> dig2Clus(const std::string &fileName, vector<Cluster>& clusters, 
     assert(entry < mTree->GetEntries());
     mTree->GetEntry(entry);
         
+    Trigger trigFirst = mTriggersFromFilePtr->at(0);
+    Trigger trigLast = mTriggersFromFilePtr->back();   
 
-   
-    const auto& firstTriggerOrbit = (mTriggersFromFilePtr->at(0)).getOrbit();
-    const auto& lastTriggerOrbit = (mTriggersFromFilePtr->back()).getOrbit();
+    const auto& tDif = (trigLast.getIr()).differenceInBCNS(trigFirst.getIr());
 
-    const auto& firstTriggerBC = (mTriggersFromFilePtr->at(0)).getBc();
-    const auto& lastTriggerBC = (mTriggersFromFilePtr->back()).getBc();
-
-    const auto& firstTrigNS = InteractionRecord::bc2ns(firstTriggerBC, firstTriggerOrbit);
-    const auto& lastTrigNS = InteractionRecord::bc2ns(lastTriggerBC, lastTriggerOrbit);
-
-
-    durSec = static_cast<double>((lastTrigNS - firstTrigNS)/1000000000);
-    durMin = static_cast<double>(durSec / 60.0);
-
+    durSec = static_cast<double>((tDif)/1000000000.0);
+    durMin = static_cast<double>((durSec)/60.0);
 
     for (const auto &trig : *mTriggersFromFilePtr) {
       if (trig.getNumberOfObjects()) {
@@ -613,7 +639,7 @@ vector<string> dig2Clus(const std::string &fileName, vector<Cluster>& clusters, 
       }
     }
 
-    cout << "Received" << mTriggersFromFilePtr->size() << "triggers with " << mDigitsFromFilePtr->size() << "digits -> clusters = " << clusters.size();
+    cout << " Received " << mTriggersFromFilePtr->size() << " triggers with " << mDigitsFromFilePtr->size() << " digits -> clusters = " << clusters.size();
 
     digits = *mDigitsFromFilePtr;
     if(digits.size() == 0){
@@ -629,8 +655,8 @@ vector<string> dig2Clus(const std::string &fileName, vector<Cluster>& clusters, 
   const int numDigits = static_cast<int>(mDigitsReceived);
   const int numClusters = static_cast<int>(mClustersReceived);
 
-  const float digClusRatio = static_cast<float>(1.0f*numDigits/numClusters*1.0f);
-  const float digTrigRatio = static_cast<float>(1.0f*numDigits/numTriggers*1.0f);
+  const float digClusRatio = static_cast<float>(1.0f*numDigits/numClusters);
+  const float digTrigRatio = static_cast<float>(1.0f*numDigits/numTriggers);
   const float triggerFrequency = static_cast<float>(1.0f*numTriggers/durSec);
 
   cout << "digClusRatio" << digClusRatio << endl;
@@ -740,10 +766,10 @@ void setPadChannel(bool (&padDigOff)[7][160][144], int chamber, int xLow, int xH
     return;
   } 
 
-  for(int x = xLow; x < xHigh; x++){
-    for(int y = yLow; y < yHigh; y++){
+  for(int x = xLow; x <= xHigh; x++){
+    for(int y = yLow; y <= yHigh; y++){
       padDigOff[chamber][x][y] = false;
-
+      padDig[chamber][x][y] = false;
     }
   }
 }

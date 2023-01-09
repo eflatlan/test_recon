@@ -211,16 +211,16 @@ void readClusters(int nEvents)
     //strigGraph.reset(new TGraph(, , 160, 0, 159, 144, 0, 143));
 
   const char* digEvtFreqStr = Form("Digits Per Event Frequency%i",i);
-  digPerEvent[i].reset(new TH1F(digEvtFreqStr, digEvtFreqStr, 500, 0., 1.));
+  digPerEvent[i].reset(new TH1F(digEvtFreqStr, digEvtFreqStr, 500, 0., .5));
   //digPerEvent[i].reset(new TH1F(digEvtFreqStr, digEvtFreqStr, 500, 100*(avgDigits-150.)/(144*160), 100*(avgDigits+150.)/(144*160)));
-    digPerEvent[i]->SetXTitle("Number of digits");
+    digPerEvent[i]->SetXTitle("Occupancy [%]");
     digPerEvent[i]->SetYTitle("Frequencies");
    
   }
   
 
   const char* trigTimeStr = Form("Trigger Time Freq");
-  triggerTimeFreqHist.reset(new TH1F(trigTimeStr, trigTimeStr, numTriggers, 0., 500000.));
+  triggerTimeFreqHist.reset(new TH1F(trigTimeStr, trigTimeStr, numTriggers*2, 0., 1000000.));
   triggerTimeFreqHist->SetXTitle("Trigger Time");
   triggerTimeFreqHist->SetYTitle("Frequency");
  
@@ -493,11 +493,12 @@ void readClusters(int nEvents)
     digMapAvg[iCh]->SetTitle(Form("Chamber Avg %i Percentage of total = %02.0f", iCh, pTotalDigs));
     digMapAvg[iCh]->Draw("Colz");
 
-    const auto maxPos = digPerEvent[iCh]->GetMaximumBin();
-    //digPerEvent[iCh]->SetBins(500, 0., 0.5);
-    digPerEvent[iCh]->Draw();
 
-    cout << "avg "  << avgDig[iCh] << " Num digs " << digPerEvent[iCh]->GetEntries() << endl;
+    if(pos > 4){
+
+      digPerEvent[iCh]->Draw();
+
+      cout << "avg "  << avgDig[iCh] << " Num digs " << digPerEvent[iCh]->GetEntries() << endl;}
   }
 
 
@@ -816,6 +817,7 @@ void setPadChannel(bool (&padDigOff)[7][160][144], int chamber, int xLow, int xH
     }
   }
 }
+
 
 
 

@@ -108,6 +108,8 @@ void readClusters(int nEvents)
   std::array<std::unique_ptr<TH2F>, 7> digMap, digMapAvg, digMapCount;
 
 
+
+  std::unique_ptr<TH1F> triggerTimeFreqHist, digPerEventFreq;
   std::unique_ptr<TGraph> trigTime;
   //double padDigits[7][160][144];
   // changeFont();			     // specify folder to save files in
@@ -173,6 +175,8 @@ void readClusters(int nEvents)
   if(!fileFound){
     cout << "No fitting file found!";
   }
+
+  float avgDigits = static_cast<float>(1.0f*digits.size()/numTriggers);
   
 
   for (int i = 0; i < 7; i++) {
@@ -203,28 +207,27 @@ void readClusters(int nEvents)
     digMapAvg[i]->SetYTitle("y [cm]");
 
 
-    const char* canDigCount = Form("DigMap Count %i", i);
-    digMapCount[i].reset(new TH2F(canDigCount, canDigCount, 160, 0, 159, 144, 0, 143));
-    //digMap[i].reset(new TH2F(canDigMap, canDigMap, 160*0.8, 0, 159*0.8, 144*0.8, 0, 160*0.8));
-    digMapCount[i]->SetXTitle("x [cm]");
-    digMapCount[i]->SetYTitle("y [cm]");
-
-
-    
     //const char* canDigMap = Form("Digit Map %i", i);
     //strigGraph.reset(new TGraph(, , 160, 0, 159, 144, 0, 143));
 
-    const char* digEvtStr = Form("Digits Per Event %i", i);
-    digPerEvent[i].reset(new TH1F(digEvtStr, digEvtStr, numTriggers, 0., 5001.));
-    digPerEvent[i]->SetXTitle("Event Number");
-    digPerEvent[i]->SetYTitle("Number of Digits");
+  const char* digEvtFreqStr = Form("Digits Per Event Frequency%i",i);
+  digPerEvent[i].reset(new TH1F(digEvtFreqStr, digEvtFreqStr, 500, 100*(avgDigits-150.)/(144*160), 100*(avgDigits+150.)/(144*160)));
+    digPerEvent[i]->SetXTitle("Number of digits");
+    digPerEvent[i]->SetYTitle("Frequencies");
+   
   }
+  
+
+  const char* trigTimeStr = Form("Trigger Time Freq");
+  triggerTimeFreqHist.reset(new TH1F(trigTimeStr, trigTimeStr, numTriggers, 0., 500000.));
+  triggerTimeFreqHist->SetXTitle("Trigger Time");
+  triggerTimeFreqHist->SetYTitle("Frequency");
  
   const char* trigEvtStr = Form("Trigger Time; Event Number; Delta Time");
   trigTime.reset(new TGraph);
   trigTime->SetTitle(trigEvtStr);
 
-  std::array<std::unique_ptr<TCanvas>, 6> canvas;  
+  std::array<std::unique_ptr<TCanvas>, 7> canvas;  
 
   (canvas[0]).reset(new TCanvas(Form("MIP Cluster-Charge %i",fname), Form("MIP Cluster-Charge %i",fname),1200, 1200));  
 
@@ -235,13 +238,19 @@ void readClusters(int nEvents)
   (canvas[3]).reset(new TCanvas(Form("Digit-Map Avg %i",fname), Form("Digit-Map Avg %i",fname), 1200, 1200));
 
   (canvas[4]).reset(new TCanvas(Form("Digits Per Event %i",fname), Form("Digits Per Event %i",fname), 1200, 1200));
+  
+
 
   (canvas[5]).reset(new TCanvas(Form("Trigger Time %i",fname), Form("Trigger Time %i",fname), 1200, 1200));
+
+  (canvas[6]).reset(new TCanvas(Form("Digits Freq %i",fname), Form("Digits Freq  %i",fname), 1200, 1200));
+
 
   canvas[0]->SetLeftMargin(.1+canvas[0]->GetLeftMargin());
   canvas[1]->SetLeftMargin(.175+canvas[1]->GetLeftMargin());
   canvas[2]->SetLeftMargin(.1+canvas[2]->GetLeftMargin());
   canvas[3]->SetLeftMargin(.1+canvas[3]->GetLeftMargin());
+  canvas[4]->SetLeftMargin(.1+canvas[4]->GetLeftMargin());
   Int_t nTotTriggers = 0;
      
     vector<Digit> oneEventDigits;
@@ -261,6 +270,10 @@ void readClusters(int nEvents)
     int trigNum = 0;
     double tprev;
     Trigger trigPrev;
+
+    vector<std::array<int, 7>> cnt;
+
+    const auto rel = 100.0/(144*160);
     for(const auto& trig : mTriggersFromFile){
       oneEventDigits.clear();
       const int numDigPerTrig = trig.getNumberOfObjects();
@@ -275,27 +288,48 @@ void readClusters(int nEvents)
 
 
       // må endres til per chamber
-      module = 0;
+
+      const auto& tDif = (trig.getIr()).differenceInBCNS(trigPrev.getIr());
+
+      
       if(trigNum > 0 && trigNum < 50){
-        const auto& tDif = (trig.getIr()).differenceInBCNS(trigPrev.getIr());
+
         if(tDif < -1000000 || tDif > 1000000){ 
           //trigTime->SetPoint(trigNum, trigNum, 0.0f);
         } else {trigTime->SetPoint(trigNum, trigNum, tDif);}
         //cout << "Filled " << trigNum << " Time " << tDif;
       }
-      
+
+      triggerTimeFreqHist->Fill(tDif);
+
+      //digPerEventFreq->Fill(numDigPerTrig*rel);
+
+      //cout << trigNum << "Filled histograms w triggerTimeFreqHist " << tDif << endl << " digPerFreq " << numDigPerTrig*rel << endl;
+      std::array<int, 7> cntCh = {0,0,0,0,0,0,0};
+
       for(int j = firstTrig; j < lastTrig; j++){
         const auto& dig = digits[j];
         Digit::pad2Absolute(dig.getPadID(), &module, &padChX, &padChY);
-	digPerEvent[module]->Fill(trigNum);
+        //cout << "Fill Chamber, trNum " <<  module << " " << trigNum << endl;
+        //cout << "Total " << cntCh[module] << endl;
+	cntCh[module]++;
+	
       }
 
+      cnt.emplace_back(cntCh);
       tprev = time;
       trigPrev = trig;
       trigNum++; 
 
     }
-     
+
+    for(int ch = 0; ch < 7; ch++){
+      for(int trNum = 0; trNum < numTriggers; trNum++){
+        digPerEvent[ch]->Fill(rel*cnt[ch][trNum]);
+        cout << "Num dig in chamber = " << rel*cnt[ch][trNum] << endl;
+      }
+    } 
+    
 
     for(const auto& dig : digits){
       Digit::pad2Absolute(dig.getPadID(), &module, &padChX, &padChY);
@@ -305,16 +339,13 @@ void readClusters(int nEvents)
       }
 
       digMap[module]->Fill(padChX, padChY, dig.getQ());
-      digMapCount[module]->Fill(padChX, padChY);
+      digMapAvg[module]->Fill(padChX, padChY, dig.getQ()/5);//numTriggers
       //digMap[module]->Fill(padChX, padChY, padDigOff[module][padChX][padChY]);
       //padDigits[module][padChX][padChY] += dig.getQ();
     }
 
     const int clusterSize = clusters.size();
-    Printf("clusters size = %i", clusterSize);
-     
-
-    
+    Printf("clusters size = %i", clusterSize);    
 
     float minCharge = 9999.0f; float maxCharge = 0.0f;
 
@@ -342,7 +373,7 @@ void readClusters(int nEvents)
 
 
   //auto folderName = fname.c_str();
-  std::array<std::unique_ptr<TPaveText>, 6> tpvs;
+  std::array<std::unique_ptr<TPaveText>, 7> tpvs;
   
 
   //fileInfo
@@ -355,7 +386,7 @@ void readClusters(int nEvents)
   const char* runLabel = Form("%i", fname);
 
 
-  vector<const char*> tpvTexts{"MIP Clusters Charge", "Digits-Charge", "Digits-Map", "Digits-Map Avg", "Digits Per Event", "Trigger Time"};
+  vector<const char*> tpvTexts{"MIP Clusters Charge", "Digits-Charge", "Digits-Map", "Digits-Map Avg", "Digits Per Event", "", ""};
 
   int j = 0;
   for(auto& tpv: tpvs){
@@ -376,6 +407,8 @@ void readClusters(int nEvents)
     tpv->AddText(f4);
   }
 
+
+
   const int tpvSize = static_cast<int>(tpvs.size());
   for(int i = 0; i < tpvSize; i++){
     canvas[i]->Divide(3, 3); 
@@ -393,13 +426,26 @@ void readClusters(int nEvents)
   gStyle->SetStatW(0.3);
   gStyle->SetStatH(0.3); 
     
-  
-  for (int iCh = 0; iCh < 7; iCh++) {
-    //*digMapAvg[iCh] = *digMap[iCh];///nTotTriggers;
-  }
-  
 
-  // digits per event
+
+  std::unique_ptr<TCanvas> temp1;
+  temp1.reset(new TCanvas(Form("temp1%i",fname), Form("temp1%i",fname),1200, 1200));
+
+  temp1->Divide(2,1);
+  { 
+
+    temp1->cd(2);
+    //tpvs[0]->Draw();
+    digPerEvent[0]->Draw();
+
+    auto pad2 = static_cast<TPad*>(temp1->cd(1));
+    triggerTimeFreqHist->Draw();
+  }
+  temp1->Show();
+  temp1->SaveAs(Form("TriggerFreq_%i_.png",fname));
+
+
+
   for (int iCh = 0; iCh < 7; iCh++) {
     const auto& pos = posArr[iCh];
     // ========== Digit MAP =========================
@@ -418,19 +464,6 @@ void readClusters(int nEvents)
   }
 
 
-  for(int chamber = 0; chamber < 7; chamber++){
-    for(int x = 0; x < 160; x++){
-      for(int y = 0; y < 144; y++){
-        if(digMapCount[chamber]->GetBinContent(x,y) == 0) {
-	  continue;
-        }
-        const auto& val = (digMap[chamber]->GetBinContent(x,y))/(digMapCount[chamber]->GetBinContent(x,y));
-        digMapAvg[chamber]->Fill(x, y, val);
-      }
-    }
-  }
-
-
   // avg digits charge
   for (int iCh = 0; iCh < 7; iCh++) {
     //(*digMapAvg[iCh]) = (*digMap[iCh])/(*digMapCount[iCh]);
@@ -438,7 +471,7 @@ void readClusters(int nEvents)
     // ========== Digit MAP =========================
     auto pad5 = static_cast<TPad*>(canvas[3]->cd(pos));
     //pad5->SetLeftMargin(+.025+pad5->GetLeftMargin());
-    const auto& pTotalDigs = static_cast<float>(100.0f*digMapAvg[iCh]->GetEntries());
+    const auto& pTotalDigs = static_cast<float>(100.0f*digMapAvg[iCh]->GetEntries()/digSize);
 
     pad5->SetBottomMargin(.0015+pad5->GetBottomMargin());
     pad5->SetRightMargin(-.0025+pad5->GetRightMargin());
@@ -452,18 +485,6 @@ void readClusters(int nEvents)
   gStyle->SetStatW(0.3);
   gStyle->SetStatH(0.6); 
     
-
-  for (int iCh = 0; iCh < 7; iCh++) {
-    const auto& pos = posArr[iCh];
-    // ========== Digit MAP =========================
-    auto pad = static_cast<TPad*>(canvas[5]->cd(pos));
-    //pad5->SetLeftMargin(+.025+pad5->GetLeftMargin());
-    pad->SetBottomMargin(.0015+pad->GetBottomMargin());
-    pad->SetRightMargin(-.0025+pad->GetRightMargin());
-    trigTime->Draw("A*");
-  }
-
-
   gStyle->SetOptStat("e");
   gStyle->SetStatW(0.3);
   gStyle->SetStatH(0.6); 
@@ -471,14 +492,13 @@ void readClusters(int nEvents)
 
   for (int iCh = 0; iCh < 7; iCh++) {
     const auto& pos = posArr[iCh];
-    // ========== Digit MAP =========================
+
     auto pad5 = static_cast<TPad*>(canvas[4]->cd(pos));
     //pad5->SetLeftMargin(+.025+pad5->GetLeftMargin());
     pad5->SetBottomMargin(.0015+pad5->GetBottomMargin());
     pad5->SetRightMargin(-.0025+pad5->GetRightMargin());
     digPerEvent[iCh]->Draw();
   }
-
   
   for (int iCh = 0; iCh < 7; iCh++) {
     const auto& pos = posArr[iCh];
@@ -527,14 +547,16 @@ void readClusters(int nEvents)
   canvas[2]->SaveAs(Form("Digit_Map_%i_.png",fname));
   canvas[3]->SaveAs(Form("Digit_Map_Avg_%i_.png",fname));
   canvas[4]->SaveAs(Form("DigitsPerEvent_%i_.png",fname));
-  canvas[5]->SaveAs(Form("TriggerTime_%i_.png",fname));
+  //canvas[5]->SaveAs(Form("TriggerTime_%i_.png",fname));
+  //canvas[6]->SaveAs(Form("TriggerTime_%i_.png",fname));
 
   canvas[0]->Show();
   canvas[1]->Show();
   canvas[2]->Show();
   canvas[3]->Show();
   canvas[4]->Show();
-  canvas[5]->Show();
+  //canvas[5]->Show();
+  //canvas[6]->Show();
 
   sleep_for(5000ms);
 

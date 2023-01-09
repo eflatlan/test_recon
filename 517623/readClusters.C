@@ -211,7 +211,8 @@ void readClusters(int nEvents)
     //strigGraph.reset(new TGraph(, , 160, 0, 159, 144, 0, 143));
 
   const char* digEvtFreqStr = Form("Digits Per Event Frequency%i",i);
-  digPerEvent[i].reset(new TH1F(digEvtFreqStr, digEvtFreqStr, 500, 100*(avgDigits-150.)/(144*160), 100*(avgDigits+150.)/(144*160)));
+  digPerEvent[i].reset(new TH1F(digEvtFreqStr, digEvtFreqStr, 500, 0., 1.));
+  //digPerEvent[i].reset(new TH1F(digEvtFreqStr, digEvtFreqStr, 500, 100*(avgDigits-150.)/(144*160), 100*(avgDigits+150.)/(144*160)));
     digPerEvent[i]->SetXTitle("Number of digits");
     digPerEvent[i]->SetYTitle("Frequencies");
    
@@ -271,7 +272,7 @@ void readClusters(int nEvents)
     double tprev;
     Trigger trigPrev;
 
-    vector<std::array<int, 7>> cnt;
+    std::array<float, 7> avgDig;
 
     const auto rel = 100.0/(144*160);
     for(const auto& trig : mTriggersFromFile){
@@ -313,23 +314,25 @@ void readClusters(int nEvents)
         //cout << "Fill Chamber, trNum " <<  module << " " << trigNum << endl;
         //cout << "Total " << cntCh[module] << endl;
 	cntCh[module]++;
+	avgDig[module]++;
 	
       }
+      for(auto c : cntCh){cout << "  " << c << endl;}
+ 	cout << endl;
 
-      cnt.emplace_back(cntCh);
+
+      for(int ch = 0; ch < 7; ch++){
+        digPerEvent[ch]->Fill(rel*cntCh[ch]);
+      }
+
+
       tprev = time;
       trigPrev = trig;
       trigNum++; 
 
     }
 
-    for(int ch = 0; ch < 7; ch++){
-      for(int trNum = 0; trNum < numTriggers; trNum++){
-        digPerEvent[ch]->Fill(rel*cnt[ch][trNum]);
-        cout << "Num dig in chamber = " << rel*cnt[ch][trNum] << endl;
-      }
-    } 
-    
+
 
     for(const auto& dig : digits){
       Digit::pad2Absolute(dig.getPadID(), &module, &padChX, &padChY);
@@ -445,13 +448,25 @@ void readClusters(int nEvents)
   temp1->SaveAs(Form("TriggerFreq_%i_.png",fname));
 
 
+  for (int iCh = 0; iCh < 7; iCh++) {
+    const auto& pos = posArr[iCh];
+    auto pad5 = static_cast<TPad*>(canvas[4]->cd(pos));
+    digPerEvent[iCh]->Draw();
+  }
+
 
   for (int iCh = 0; iCh < 7; iCh++) {
     const auto& pos = posArr[iCh];
     // ========== Digit MAP =========================
-    auto pad5 = static_cast<TPad*>(canvas[2]->cd(pos));
+
+
+    auto pad5 = static_cast<TPad*>(canvas[4]->cd(pos));
+    digPerEvent[iCh]->Draw();
     //pad5->SetLeftMargin(+.025+pad5->GetLeftMargin());
-    const auto& pTotalDigs = static_cast<float>(100.0f*digMap[iCh]->GetEntries()/digSize);
+
+
+    /*const auto& pTotalDigs = static_cast<float>(100.0f*digMap[iCh]->GetEntries()/digSize);
+    
     digMap[iCh]->SetLabelOffset(digMap[iCh]->GetLabelOffset("y")-0.0015, "y");
     digMap[iCh]->SetTitleOffset(digMap[iCh]->GetTitleOffset("y")-0.0015, "y");
     digMap[iCh]->SetTitleOffset(digMap[iCh]->GetTitleOffset("x")-0.0005, "x");
@@ -460,7 +475,7 @@ void readClusters(int nEvents)
     pad5->SetRightMargin(-.0025+pad5->GetRightMargin());
     digMap[iCh]->SetTitle(Form("Chamber %i Percentage of total = %02.0f", iCh, pTotalDigs));
     digMap[iCh]->SetMarkerStyle(3);
-    digMap[iCh]->Draw("Colz");
+    digMap[iCh]->Draw("Colz"); */
   }
 
 
@@ -477,6 +492,12 @@ void readClusters(int nEvents)
     pad5->SetRightMargin(-.0025+pad5->GetRightMargin());
     digMapAvg[iCh]->SetTitle(Form("Chamber Avg %i Percentage of total = %02.0f", iCh, pTotalDigs));
     digMapAvg[iCh]->Draw("Colz");
+
+    const auto maxPos = digPerEvent[iCh]->GetMaximumBin();
+    digPerEvent[iCh]->SetBins(500, 0., maxPos);
+    digPerEvent[iCh]->Draw();
+
+    cout << "avg "  << avgDig[iCh] << " Num digs " << digPerEvent[iCh]->GetEntries() << endl;
   }
 
 
@@ -489,7 +510,7 @@ void readClusters(int nEvents)
   gStyle->SetStatW(0.3);
   gStyle->SetStatH(0.6); 
     
-
+  /*
   for (int iCh = 0; iCh < 7; iCh++) {
     const auto& pos = posArr[iCh];
 
@@ -498,7 +519,7 @@ void readClusters(int nEvents)
     pad5->SetBottomMargin(.0015+pad5->GetBottomMargin());
     pad5->SetRightMargin(-.0025+pad5->GetRightMargin());
     digPerEvent[iCh]->Draw();
-  }
+  } */
   
   for (int iCh = 0; iCh < 7; iCh++) {
     const auto& pos = posArr[iCh];

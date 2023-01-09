@@ -494,7 +494,7 @@ void readClusters(int nEvents)
     digMapAvg[iCh]->Draw("Colz");
 
     const auto maxPos = digPerEvent[iCh]->GetMaximumBin();
-    digPerEvent[iCh]->SetBins(500, 0., maxPos);
+    //digPerEvent[iCh]->SetBins(500, 0., 0.5);
     digPerEvent[iCh]->Draw();
 
     cout << "avg "  << avgDig[iCh] << " Num digs " << digPerEvent[iCh]->GetEntries() << endl;

@@ -106,7 +106,7 @@ void readClusters(int nEvents)
   std::array<std::unique_ptr<TGraph>, 7> trigGraph;
   
   std::array<std::unique_ptr<TH1F>, 7> digCharge, hMipCharge, digPerEvent;
-  std::array<std::unique_ptr<TH2F>, 7> digMap, digMapAvg, digMapSel;
+  std::array<std::unique_ptr<TH2F>, 7> digMap, digMapAvg, digMapSel, test;
 
 
 
@@ -216,8 +216,7 @@ void readClusters(int nEvents)
     digPerEvent[i].reset(new TH1F(digEvtFreqStr, digEvtFreqStr, 500, 0., .5));
     //digPerEvent[i].reset(new TH1F(digEvtFreqStr, digEvtFreqStr, 500, 100*(avgDigits-150.)/(144*160), 100*(avgDigits+150.)/(144*160)));
     digPerEvent[i]->SetXTitle("Occupancy [%]");
-    digPerEvent[i]->SetYTitle("Frequencies");
-   
+    digPerEvent[i]->SetYTitle("Frequencies");   
   }
 
 
@@ -225,7 +224,17 @@ void readClusters(int nEvents)
     for(int x = 0; x < 160; x++){
       for(int y = 0; y < 144; y++){
         if(!padDig[chamber][x][y]){
-          digMapSel[chamber]->Fill(x,y,1.);
+          digMapSel[chamber]->Fill(x, y, 50.);
+          //cout << "False padDigOff " << chamber << " x " << x << " y " << y << endl;
+        }
+      }
+    }
+  }
+
+  for(int chamber = 0; chamber < 7; chamber++){
+    for(int x = 0; x < 160; x++){
+      for(int y = 0; y < 144; y++){
+        if(digMapSel[chamber]->GetBinContent(x,y)==50.){
           cout << "False padDigOff " << chamber << " x " << x << " y " << y << endl;
         }
       }
@@ -441,7 +450,7 @@ void readClusters(int nEvents)
 
 
   std::unique_ptr<TCanvas> temp1;
-  temp1.reset(new TCanvas(Form("temp1%i",fname), Form("temp1%i",fname),1200, 800));
+  temp1.reset(new TCanvas(Form("temp1%i",fname), Form("temp1%i",fname),1200, 2000));
   temp1->Divide(2,1);
   { 
 
@@ -450,13 +459,21 @@ void readClusters(int nEvents)
     tpvs[0]->Draw();
     auto pad2 = static_cast<TPad*>(temp1->cd(1));
 
-    pad2->SetLeftMargin(.025+pad2->GetLeftMargin());
+    pad2->SetLeftMargin(.0375+pad2->GetLeftMargin());
 
-    pad2->SetBottomMargin(.0025+pad2->GetBottomMargin());
-    pad2->SetRightMargin(.0025+pad2->GetRightMargin());
+    pad2->SetBottomMargin(.0375+pad2->GetBottomMargin());
+    pad2->SetRightMargin(.0375+pad2->GetRightMargin());
 
+    triggerTimeFreqHist->SetTitleOffset(triggerTimeFreqHist->GetTitleOffset("y")*1.5, "y");
+    triggerTimeFreqHist->SetTitleOffset(triggerTimeFreqHist->GetTitleOffset("x")*1.5, "x");
+
+    triggerTimeFreqHist->SetTitleSize(triggerTimeFreqHist->GetTitleSize("x")*0.75, "x");
+    triggerTimeFreqHist->SetTitleSize(triggerTimeFreqHist->GetTitleSize("y")*0.75, "y");
+    triggerTimeFreqHist->SetLabelSize(triggerTimeFreqHist->GetLabelSize("x")*0.625, "x");
+    triggerTimeFreqHist->SetLabelSize(triggerTimeFreqHist->GetLabelSize("y")*0.75, "y");
     triggerTimeFreqHist->Draw();
   }
+  gStyle->SetOptStat("eimr");
   gStyle->SetStatX(0.95);
   temp1->Show();
   temp1->SaveAs(Form("TriggerFreq_%i_.png",fname));
@@ -600,6 +617,10 @@ void readClusters(int nEvents)
     pad3->SetRightMargin(-.0025+pad3->GetRightMargin());
     digMapSel[iCh]->SetLabelOffset(digMapSel[iCh]->GetLabelOffset("y")+0.0015, "y");
     digMapSel[iCh]->SetTitleOffset(1.3,"y");
+    digMapSel[iCh]->SetMarkerStyle(3);
+    digMapSel[iCh]->Draw("Colz");
+
+    digMapSel[iCh]->SetStats(kFALSE);
     digMapSel[iCh]->Draw();
   }
   canvas[5]->Show();

@@ -447,13 +447,20 @@ void readClusters(int nEvents)
 
 
   std::unique_ptr<TCanvas> temp1;
-  temp1.reset(new TCanvas(Form("temp1%i",fname), Form("temp1%i",fname),1200, 1200));
+  temp1.reset(new TCanvas(Form("temp1%i",fname), Form("temp1%i",fname),1200, 800));
   temp1->Divide(2,1);
   { 
 
     temp1->cd(2);
+
     tpvs[0]->Draw();
     auto pad2 = static_cast<TPad*>(temp1->cd(1));
+
+    pad2->SetLeftMargin(.025+pad2->GetLeftMargin());
+
+    pad2->SetBottomMargin(.0025+pad2->GetBottomMargin());
+    pad2->SetRightMargin(.0025+pad2->GetRightMargin());
+
     triggerTimeFreqHist->Draw();
   }
 
@@ -478,7 +485,7 @@ void readClusters(int nEvents)
     digMap[iCh]->SetTitleOffset(digMap[iCh]->GetTitleOffset("x")-0.0005, "x");
 
     pad5->SetBottomMargin(.0015+pad5->GetBottomMargin());
-    pad5->SetRightMargin(-.0025+pad5->GetRightMargin());
+    pad5->SetRightMargin(.0025+pad5->GetRightMargin());
     digMap[iCh]->SetTitle(Form("Chamber %i Percentage of total = %02.0f", iCh, pTotalDigs));
     digMap[iCh]->SetMarkerStyle(3);
     digMap[iCh]->Draw("Colz");
@@ -537,10 +544,11 @@ void readClusters(int nEvents)
     const auto& pos = posArr[iCh];
     // ========== Digit MAP =========================
     auto pad5 = static_cast<TPad*>(canvas[4]->cd(pos));
-    //pad5->SetLeftMargin(+.025+pad5->GetLeftMargin());
+    pad5->SetLeftMargin(+.025+pad5->GetLeftMargin());
 
     pad5->SetBottomMargin(.0015+pad5->GetBottomMargin());
     pad5->SetRightMargin(-.0025+pad5->GetRightMargin());
+    digPerEvent[iCh]->SetTitleOffset(digPerEvent[iCh]->GetTitleOffset("y")+0.025, "y");
     digPerEvent[iCh]->Draw();
   }
 
@@ -556,9 +564,9 @@ void readClusters(int nEvents)
     // ========== Digit Charge =========================
     auto pad3 = static_cast<TPad*>(canvas[1]->cd(pos));
     pad3->SetBottomMargin(.0025+pad3->GetBottomMargin());
-    pad3->SetLeftMargin(.05+pad3->GetLeftMargin());
+    pad3->SetLeftMargin(.065+pad3->GetLeftMargin());
     digCharge[iCh]->SetLabelOffset(digCharge[iCh]->GetLabelOffset("y")+0.0015, "y");
-    digCharge[iCh]->SetTitleOffset(1.2,"y");
+    digCharge[iCh]->SetTitleOffset(1.3,"y");
     pad3->SetRightMargin(-.0025+pad3->GetRightMargin());
     digCharge[iCh]->Draw();
   }
@@ -568,8 +576,6 @@ void readClusters(int nEvents)
 
   gStyle->SetOptStat("eim");
   gStyle->SetLabelOffset(0.008, "y");
-
-
 
 
   canvas[0]->SaveAs(Form("MIP_Cluster_Charge_%i_.png",fname));
@@ -585,7 +591,7 @@ void readClusters(int nEvents)
   canvas[2]->Show();
   canvas[3]->Show();
   canvas[4]->Show();
-  //canvas[5]->Show();
+  canvas[5]->Show();
   //canvas[6]->Show();
 
   sleep_for(5000ms);

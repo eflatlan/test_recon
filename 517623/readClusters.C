@@ -61,12 +61,6 @@ std::vector<o2::hmpid::Trigger> mTriggersFromFile,
 // void SaveFolder(string inpFile);
 void changeFont();
 
-void drawMIPCharge(TCanvas* tcnv);
-void drawDigCharge(TCanvas* tcnv);
-void drawDigMap(TCanvas* tcnv);
-void drawDigMapAvg(TCanvas* tcnv);
-void drawDigOccupancy(TCanvas* tcnv);
-
 
 vector<string> dig2Clus(const std::string &fileName, vector<Cluster>& clusters, vector<Trigger>& clusterTriggers, vector<Digit>& digits);
 bool mReadFile = false;
@@ -218,9 +212,9 @@ void readClusters(int nEvents)
     //const char* canDigMap = Form("Digit Map %i", i);
     //strigGraph.reset(new TGraph(, , 160, 0, 159, 144, 0, 143));
 
-  const char* digEvtFreqStr = Form("Digits Per Event Frequency%i",i);
-  digPerEvent[i].reset(new TH1F(digEvtFreqStr, digEvtFreqStr, 500, 0., .5));
-  //digPerEvent[i].reset(new TH1F(digEvtFreqStr, digEvtFreqStr, 500, 100*(avgDigits-150.)/(144*160), 100*(avgDigits+150.)/(144*160)));
+    const char* digEvtFreqStr = Form("Digits Per Event Frequency%i",i);
+    digPerEvent[i].reset(new TH1F(digEvtFreqStr, digEvtFreqStr, 500, 0., .5));
+    //digPerEvent[i].reset(new TH1F(digEvtFreqStr, digEvtFreqStr, 500, 100*(avgDigits-150.)/(144*160), 100*(avgDigits+150.)/(144*160)));
     digPerEvent[i]->SetXTitle("Occupancy [%]");
     digPerEvent[i]->SetYTitle("Frequencies");
    
@@ -239,7 +233,7 @@ void readClusters(int nEvents)
   }
 
   const char* trigTimeStr = Form("Trigger Time Freq");
-  triggerTimeFreqHist.reset(new TH1F(trigTimeStr, trigTimeStr, numTriggers/10, 0., 2000000.));
+  triggerTimeFreqHist.reset(new TH1F(trigTimeStr, trigTimeStr, numTriggers/100, 0., 2000000.));
   triggerTimeFreqHist->SetXTitle("Trigger Time");
   triggerTimeFreqHist->SetYTitle("Frequency");
  
@@ -336,8 +330,8 @@ void readClusters(int nEvents)
 	avgDig[module]++;
 	
       }
-      for(auto c : cntCh){cout << "  " << c << endl;}
- 	cout << endl;
+      //for(auto c : cntCh){cout << "  " << c << endl;}
+ 	//cout << endl;
 
 
       for(int ch = 0; ch < 7; ch++){
@@ -463,7 +457,7 @@ void readClusters(int nEvents)
 
     triggerTimeFreqHist->Draw();
   }
-
+  gStyle->SetStatX(0.95);
   temp1->Show();
   temp1->SaveAs(Form("TriggerFreq_%i_.png",fname));
 
@@ -485,13 +479,15 @@ void readClusters(int nEvents)
     digMap[iCh]->SetTitleOffset(digMap[iCh]->GetTitleOffset("x")-0.0005, "x");
 
     pad5->SetBottomMargin(.0015+pad5->GetBottomMargin());
-    pad5->SetRightMargin(.0025+pad5->GetRightMargin());
+    pad5->SetRightMargin(.125+pad5->GetRightMargin());
     digMap[iCh]->SetTitle(Form("Chamber %i Percentage of total = %02.0f", iCh, pTotalDigs));
     digMap[iCh]->SetMarkerStyle(3);
     digMap[iCh]->Draw("Colz");
+
+    digMap[iCh]->SetStats(kFALSE);
   }
 
-    
+  gStyle->SetStatX(0.85);
   gStyle->SetOptStat("e");
   gStyle->SetStatW(0.3);
   gStyle->SetStatH(0.6); 
@@ -507,17 +503,17 @@ void readClusters(int nEvents)
     const auto& pTotalDigs = static_cast<float>(100.0f*digMapAvg[iCh]->GetEntries()/digSize);
 
     pad5->SetBottomMargin(.0015+pad5->GetBottomMargin());
-    pad5->SetRightMargin(-.0025+pad5->GetRightMargin());
+    pad5->SetRightMargin(.125+pad5->GetRightMargin());
     digMapAvg[iCh]->SetTitle(Form("Chamber Avg %i Percentage of total = %02.0f", iCh, pTotalDigs));
+    digMapAvg[iCh]->SetStats(kFALSE);
     digMapAvg[iCh]->Draw("Colz");
   }
-
     
   gStyle->SetOptStat("e");
   gStyle->SetStatW(0.3);
-  gStyle->SetStatH(0.6); 
-    
-  
+  gStyle->SetStatH(0.6);     
+  gStyle->SetStatX(0.85);
+
   for (int iCh = 0; iCh < 7; iCh++) {
     const auto& pos = posArr[iCh];
     // ========== MIP Charge =========================
@@ -531,7 +527,7 @@ void readClusters(int nEvents)
     //hMipCharge[iCh]->SetTitle(Form("Constant %03.1f \n MPV %03.1f Sigma %03.1f", Constant, MPV, Sigma));
     hMipCharge[iCh]->Draw();
   }
-
+  gStyle->SetStatX(0.95);
   //drawMipCharge(hMipCharge)
 
   gStyle->SetStatW(0.3);
@@ -551,7 +547,7 @@ void readClusters(int nEvents)
     digPerEvent[iCh]->SetTitleOffset(digPerEvent[iCh]->GetTitleOffset("y")+0.025, "y");
     digPerEvent[iCh]->Draw();
   }
-
+  gStyle->SetStatX(0.95);
   gStyle->SetStatW(0.3);
   gStyle->SetStatH(0.6); 
   gStyle->SetOptStat("eimr");
@@ -573,7 +569,7 @@ void readClusters(int nEvents)
 
 
   gStyle->SetStatH(0.2); 
-
+  gStyle->SetStatX(0.95);
   gStyle->SetOptStat("eim");
   gStyle->SetLabelOffset(0.008, "y");
 
@@ -591,13 +587,39 @@ void readClusters(int nEvents)
   canvas[2]->Show();
   canvas[3]->Show();
   canvas[4]->Show();
-  canvas[5]->Show();
   //canvas[6]->Show();
 
   sleep_for(5000ms);
 
+  for (int iCh = 0; iCh < 7; iCh++) {
+    const auto& pos = posArr[iCh];
+
+    // ========== Digit Charge =========================
+    auto pad3 = static_cast<TPad*>(canvas[5]->cd(pos));
+    pad3->SetBottomMargin(.0015+pad3->GetBottomMargin());
+    pad3->SetRightMargin(-.0025+pad3->GetRightMargin());
+    digMapSel[iCh]->SetLabelOffset(digMapSel[iCh]->GetLabelOffset("y")+0.0015, "y");
+    digMapSel[iCh]->SetTitleOffset(1.3,"y");
+    digMapSel[iCh]->Draw();
+  }
+  canvas[5]->Show();
+
   bool userInput = false;
   while(!userInput){
+    sleep_for(5000ms);
+    for (int iCh = 0; iCh < 7; iCh++) {
+      const auto& pos = posArr[iCh];
+
+      // ========== Digit Charge =========================
+      auto pad3 = static_cast<TPad*>(canvas[5]->cd(pos));
+      pad3->SetBottomMargin(.0015+pad3->GetBottomMargin());
+      pad3->SetRightMargin(-.0025+pad3->GetRightMargin());
+      digMapSel[iCh]->SetLabelOffset(digMapSel[iCh]->GetLabelOffset("y")+0.0015, "y");
+      digMapSel[iCh]->SetTitleOffset(1.3,"y");
+      digMapSel[iCh]->Draw();
+      canvas[5]->Show();
+    }
+   
     sleep_for(5000ms);
     string uInputString;
     sleep_for(50ms);
@@ -714,8 +736,8 @@ vector<string> dig2Clus(const std::string &fileName, vector<Cluster>& clusters, 
   const float digTrigRatio = static_cast<float>(1.0f*numDigits/numTriggers);
   const float triggerFrequency = static_cast<float>(1.0f*numTriggers/durSec);
 
-  cout << "digClusRatio" << digClusRatio << endl;
-  cout << "digTrigRatio" << digTrigRatio << endl;
+  cout << "digClusRatio " << digClusRatio << endl;
+  cout << "digTrigRatio " << digTrigRatio << endl;
 
   const auto& ratioInfo = Form("Dig/Clus = %.2f Dig/Triggers= %.0f", digClusRatio, digTrigRatio); 
 
@@ -780,7 +802,7 @@ void changeFont()
   mStyle.reset(new TStyle("canvasStyle", "Canvas Root Styles"));
   */ 
 
-  gStyle->SetStatX(0.925);
+  gStyle->SetStatX(0.85);
   gStyle->SetStatY(0.9);
   gStyle->SetStatW(0.3);
   gStyle->SetStatH(0.25);

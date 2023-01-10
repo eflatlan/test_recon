@@ -112,7 +112,7 @@ void readClusters(int nEvents)
   std::array<std::unique_ptr<TGraph>, 7> trigGraph;
   
   std::array<std::unique_ptr<TH1F>, 7> digCharge, hMipCharge, digPerEvent;
-  std::array<std::unique_ptr<TH2F>, 7> digMap, digMapAvg, digMapCount;
+  std::array<std::unique_ptr<TH2F>, 7> digMap, digMapAvg, digMapSel;
 
 
 
@@ -137,14 +137,6 @@ void readClusters(int nEvents)
 
   setPadChannel(padDigOff, 6, 141, 150, 105, 110); // chamber, xLow, xHigh, yLow,  yHigh
   
-  for(int chamber = 0; chamber < 7; chamber++){
-  for(int x = 0; x < 160; x++){
-    for(int y = 0; y < 144; y++){
-      if(!padDig[chamber][x][y])
-      {cout << "False padDigOff " << chamber << " x " << x << " y " << y << endl;}
-    }
-  }}
-
   vector<Cluster> clusters; vector<Trigger> clusterTriggers;
   vector<Digit> digits;
   int fname = 000000;
@@ -207,6 +199,15 @@ void readClusters(int nEvents)
     digMap[i]->SetXTitle("x [cm]");
     digMap[i]->SetYTitle("y [cm]");
 
+
+
+    const char* canDigSel = Form("Selected Pads %i", i);
+    digMapSel[i].reset(new TH2F(canDigSel, canDigSel, 160, 0, 159, 144, 0, 143));
+    //digMap[i].reset(new TH2F(canDigMap, canDigMap, 160*0.8, 0, 159*0.8, 144*0.8, 0, 160*0.8));
+    digMapSel[i]->SetXTitle("x [cm]");
+    digMapSel[i]->SetYTitle("y [cm]");
+    
+
     const char* canDigAvg = Form("Avg Charge Per Pad %i", i);
     digMapAvg[i].reset(new TH2F(canDigAvg, canDigAvg, 160, 0, 159, 144, 0, 143));
     //digMap[i].reset(new TH2F(canDigMap, canDigMap, 160*0.8, 0, 159*0.8, 144*0.8, 0, 160*0.8));
@@ -224,7 +225,18 @@ void readClusters(int nEvents)
     digPerEvent[i]->SetYTitle("Frequencies");
    
   }
-  
+
+
+  for(int chamber = 0; chamber < 7; chamber++){
+    for(int x = 0; x < 160; x++){
+      for(int y = 0; y < 144; y++){
+        if(!padDig[chamber][x][y]){
+          digMapSel[chamber]->Fill(x,y,1.);
+          cout << "False padDigOff " << chamber << " x " << x << " y " << y << endl;
+        }
+      }
+    }
+  }
 
   const char* trigTimeStr = Form("Trigger Time Freq");
   triggerTimeFreqHist.reset(new TH1F(trigTimeStr, trigTimeStr, numTriggers/10, 0., 2000000.));
@@ -249,7 +261,7 @@ void readClusters(int nEvents)
   
 
 
-  (canvas[5]).reset(new TCanvas(Form("Trigger Time %i",fname), Form("Trigger Time %i",fname), 1200, 1200));
+  (canvas[5]).reset(new TCanvas(Form("Map of sel %i",fname), Form("Map of sel%i",fname), 1200, 1200));
 
   (canvas[6]).reset(new TCanvas(Form("Digits Freq %i",fname), Form("Digits Freq  %i",fname), 1200, 1200));
 
@@ -396,7 +408,7 @@ void readClusters(int nEvents)
   const char* runLabel = Form("%i", fname);
 
 
-  vector<const char*> tpvTexts{"MIP Clusters Charge", "Digits-Charge", "Digits-Map", "Digits-Map Avg", "Digits Per Event", "", ""};
+  vector<const char*> tpvTexts{"MIP Clusters Charge", "Digits-Charge", "Digits-Map", "Digits-Map Avg", "Digits Per Event", "Map of Evaluated Areas", ""};
 
   int j = 0;
   for(auto& tpv: tpvs){
@@ -417,16 +429,12 @@ void readClusters(int nEvents)
     tpv->AddText(f4);
   }
 
-
-
   const int tpvSize = static_cast<int>(tpvs.size());
   for(int i = 0; i < tpvSize; i++){
     canvas[i]->Divide(3, 3); 
     canvas[i]->cd(3);
     tpvs[i]->Draw();
   }
-
-
 
   const int posArr[] = {9, 8, 6, 5, 4, 2, 1};
   changeFont();    
@@ -440,17 +448,15 @@ void readClusters(int nEvents)
 
   std::unique_ptr<TCanvas> temp1;
   temp1.reset(new TCanvas(Form("temp1%i",fname), Form("temp1%i",fname),1200, 1200));
-
   temp1->Divide(2,1);
   { 
 
     temp1->cd(2);
-    //tpvs[0]->Draw();
-    digPerEvent[0]->Draw();
-
+    tpvs[0]->Draw();
     auto pad2 = static_cast<TPad*>(temp1->cd(1));
     triggerTimeFreqHist->Draw();
   }
+
   temp1->Show();
   temp1->SaveAs(Form("TriggerFreq_%i_.png",fname));
 
@@ -478,7 +484,11 @@ void readClusters(int nEvents)
     digMap[iCh]->Draw("Colz");
   }
 
-
+    
+  gStyle->SetOptStat("e");
+  gStyle->SetStatW(0.3);
+  gStyle->SetStatH(0.6); 
+    
 
   // avg digits charge
   for (int iCh = 0; iCh < 7; iCh++) {
@@ -538,6 +548,7 @@ void readClusters(int nEvents)
   gStyle->SetStatH(0.6); 
   gStyle->SetOptStat("eimr");
   gStyle->SetLabelOffset(0.00525, "y");
+
 
   for (int iCh = 0; iCh < 7; iCh++) {
     const auto& pos = posArr[iCh];

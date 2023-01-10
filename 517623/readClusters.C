@@ -61,6 +61,13 @@ std::vector<o2::hmpid::Trigger> mTriggersFromFile,
 // void SaveFolder(string inpFile);
 void changeFont();
 
+void drawMIPCharge(TCanvas* tcnv);
+void drawDigCharge(TCanvas* tcnv);
+void drawDigMap(TCanvas* tcnv);
+void drawDigMapAvg(TCanvas* tcnv);
+void drawDigOccupancy(TCanvas* tcnv);
+
+
 vector<string> dig2Clus(const std::string &fileName, vector<Cluster>& clusters, vector<Trigger>& clusterTriggers, vector<Digit>& digits);
 bool mReadFile = false;
 std::string mSigmaCutPar;
@@ -220,7 +227,7 @@ void readClusters(int nEvents)
   
 
   const char* trigTimeStr = Form("Trigger Time Freq");
-  triggerTimeFreqHist.reset(new TH1F(trigTimeStr, trigTimeStr, numTriggers*2, 0., 1000000.));
+  triggerTimeFreqHist.reset(new TH1F(trigTimeStr, trigTimeStr, numTriggers/10, 0., 2000000.));
   triggerTimeFreqHist->SetXTitle("Trigger Time");
   triggerTimeFreqHist->SetYTitle("Frequency");
  
@@ -450,22 +457,15 @@ void readClusters(int nEvents)
 
   for (int iCh = 0; iCh < 7; iCh++) {
     const auto& pos = posArr[iCh];
-    auto pad5 = static_cast<TPad*>(canvas[4]->cd(pos));
-    digPerEvent[iCh]->Draw();
-  }
-
-
-  for (int iCh = 0; iCh < 7; iCh++) {
-    const auto& pos = posArr[iCh];
     // ========== Digit MAP =========================
 
 
-    auto pad5 = static_cast<TPad*>(canvas[4]->cd(pos));
-    digPerEvent[iCh]->Draw();
-    //pad5->SetLeftMargin(+.025+pad5->GetLeftMargin());
+    auto pad5 = static_cast<TPad*>(canvas[2]->cd(pos));
+    //digPerEvent[iCh]->Draw();
+    pad5->SetLeftMargin(+.025+pad5->GetLeftMargin());
 
 
-    /*const auto& pTotalDigs = static_cast<float>(100.0f*digMap[iCh]->GetEntries()/digSize);
+    const auto& pTotalDigs = static_cast<float>(100.0f*digMap[iCh]->GetEntries()/digSize);
     
     digMap[iCh]->SetLabelOffset(digMap[iCh]->GetLabelOffset("y")-0.0015, "y");
     digMap[iCh]->SetTitleOffset(digMap[iCh]->GetTitleOffset("y")-0.0015, "y");
@@ -475,8 +475,9 @@ void readClusters(int nEvents)
     pad5->SetRightMargin(-.0025+pad5->GetRightMargin());
     digMap[iCh]->SetTitle(Form("Chamber %i Percentage of total = %02.0f", iCh, pTotalDigs));
     digMap[iCh]->SetMarkerStyle(3);
-    digMap[iCh]->Draw("Colz"); */
+    digMap[iCh]->Draw("Colz");
   }
+
 
 
   // avg digits charge
@@ -492,41 +493,18 @@ void readClusters(int nEvents)
     pad5->SetRightMargin(-.0025+pad5->GetRightMargin());
     digMapAvg[iCh]->SetTitle(Form("Chamber Avg %i Percentage of total = %02.0f", iCh, pTotalDigs));
     digMapAvg[iCh]->Draw("Colz");
-
-
-    if(pos > 4){
-
-      digPerEvent[iCh]->Draw();
-
-      cout << "avg "  << avgDig[iCh] << " Num digs " << digPerEvent[iCh]->GetEntries() << endl;}
   }
 
-
-
-  gStyle->SetOptStat("e");
-  gStyle->SetStatW(0.3);
-  gStyle->SetStatH(0.6); 
     
   gStyle->SetOptStat("e");
   gStyle->SetStatW(0.3);
   gStyle->SetStatH(0.6); 
     
-  /*
-  for (int iCh = 0; iCh < 7; iCh++) {
-    const auto& pos = posArr[iCh];
-
-    auto pad5 = static_cast<TPad*>(canvas[4]->cd(pos));
-    //pad5->SetLeftMargin(+.025+pad5->GetLeftMargin());
-    pad5->SetBottomMargin(.0015+pad5->GetBottomMargin());
-    pad5->SetRightMargin(-.0025+pad5->GetRightMargin());
-    digPerEvent[iCh]->Draw();
-  } */
   
   for (int iCh = 0; iCh < 7; iCh++) {
     const auto& pos = posArr[iCh];
     // ========== MIP Charge =========================
-    auto pad0 = static_cast<TPad*>(canvas[0]->cd(pos)); // Constant*TMath::Landau(1, [MPV], sigma, 0)
-
+    auto pad0 = static_cast<TPad*>(canvas[0]->cd(pos));
     pad0->SetLeftMargin(-.0025+pad0->GetLeftMargin());
     pad0->SetRightMargin(-.005+pad0->GetRightMargin());
     pad0->SetBottomMargin(.0025+pad0->GetBottomMargin());
@@ -535,7 +513,25 @@ void readClusters(int nEvents)
     hMipCharge[iCh]->SetTitleOffset(0.8, "y");
     //hMipCharge[iCh]->SetTitle(Form("Constant %03.1f \n MPV %03.1f Sigma %03.1f", Constant, MPV, Sigma));
     hMipCharge[iCh]->Draw();
+  }
 
+  //drawMipCharge(hMipCharge)
+
+  gStyle->SetStatW(0.3);
+  gStyle->SetStatH(0.6); 
+  gStyle->SetOptStat("eimr");
+  gStyle->SetLabelOffset(0.00525, "y");
+
+  // avg digits charge
+  for (int iCh = 0; iCh < 7; iCh++) {
+    const auto& pos = posArr[iCh];
+    // ========== Digit MAP =========================
+    auto pad5 = static_cast<TPad*>(canvas[4]->cd(pos));
+    //pad5->SetLeftMargin(+.025+pad5->GetLeftMargin());
+
+    pad5->SetBottomMargin(.0015+pad5->GetBottomMargin());
+    pad5->SetRightMargin(-.0025+pad5->GetRightMargin());
+    digPerEvent[iCh]->Draw();
   }
 
   gStyle->SetStatW(0.3);
@@ -555,6 +551,7 @@ void readClusters(int nEvents)
     pad3->SetRightMargin(-.0025+pad3->GetRightMargin());
     digCharge[iCh]->Draw();
   }
+
 
   gStyle->SetStatH(0.2); 
 
@@ -604,18 +601,15 @@ void readClusters(int nEvents)
     }
     sleep_for(1000ms);
     if(userInput){
-      canvas[0]->Close();
-      canvas[1]->Close();
-      canvas[2]->Close();
-      canvas[3]->Close();
-      canvas[4]->Close();
-      cout << "Got End fro User.. Exiting!";
+      canvas[0]->Close();canvas[1]->Close();canvas[2]->Close();
+      canvas[3]->Close();canvas[4]->Close();cout << "Got End fro User.. Exiting!";
       canvas[0]->SaveAs(Form("MIP_Cluster_Charge_%i_.png",fname));
       canvas[1]->SaveAs(Form("Digit_Charge_%i_.png",fname));
       canvas[2]->SaveAs(Form("Digit_Map_%i_.png",fname));
     }
   }
 }
+
 
 
 void strToFloatsSplit(std::string s, std::string delimiter, float *res,

@@ -74,6 +74,7 @@ float mSigmaCut[7] = {4, 4, 4, 4, 4, 4, 4};
 std::unique_ptr<TFile> mFile; ///< input file containin the tree
 std::unique_ptr<TTree> mTree; ///< input tree
 
+int chargeBelow4[7][5];
 
 
 std::unique_ptr<Clusterer> mRec; // ef: changed to smart-pointer
@@ -124,7 +125,7 @@ void readClusters(int nEvents)
 
   std::array<std::unique_ptr<TGraph>, 7> trigGraph;
   
-  std::array<std::unique_ptr<TH1F>, 7> digCharge, hMipCharge, digPerEvent;
+  std::array<std::unique_ptr<TH1F>, 7> digCharge, hMipCharge, digPerEvent, digCharges;
   std::array<std::unique_ptr<TH2F>, 7> digMap, digMapAvg, digMapSel, test;
 
 
@@ -207,6 +208,12 @@ void readClusters(int nEvents)
     digCharge[i]->SetYTitle("Entries/40 ADC");
     digCharge[i]->SetLabelOffset(0.0065, "y");
 
+    const char* canStringSizes = Form("Digit Charge Small%i", i);
+    digCharges[i].reset(new TH1F(canStringSizes, canStringSizes, 10, 0., 10.));
+    digCharges[i]->SetXTitle("Charge (ADC channel)");
+    digCharges[i]->SetYTitle("Entries/40 ADC");
+    digCharges[i]->SetLabelOffset(0.0065, "y");
+
 
     const char* canDigMap = Form("Digit Map %i", i);
     digMap[i].reset(new TH2F(canDigMap, canDigMap, 160, 0, 159, 144, 0, 143));
@@ -236,7 +243,8 @@ void readClusters(int nEvents)
     digPerEvent[i].reset(new TH1F(digEvtFreqStr, digEvtFreqStr, 500, 0., .5));
     //digPerEvent[i].reset(new TH1F(digEvtFreqStr, digEvtFreqStr, 500, 100*(avgDigits-150.)/(144*160), 100*(avgDigits+150.)/(144*160)));
     digPerEvent[i]->SetXTitle("Occupancy [%]");
-    digPerEvent[i]->SetYTitle("Frequencies");   
+    digPerEvent[i]->SetYTitle("Frequencies");
+
   }
 
 
@@ -266,7 +274,7 @@ void readClusters(int nEvents)
 
 
   const char* trigTimeStr = Form("Trigger Time Freq");
-  triggerTimeFreqHist.reset(new TH1F(trigTimeStr, trigTimeStr, numTriggers/250, largestNegDiff*1.5, largestDiff*1.5));
+  triggerTimeFreqHist.reset(new TH1F(trigTimeStr, trigTimeStr, 50, largestNegDiff*1.5, largestDiff*1.5));
   triggerTimeFreqHist->SetXTitle("Trigger Time");
   triggerTimeFreqHist->SetYTitle("Frequency");
  
@@ -274,19 +282,27 @@ void readClusters(int nEvents)
   trigTime.reset(new TGraph);
   trigTime->SetTitle(trigEvtStr);
 
-  std::array<std::unique_ptr<TCanvas>, 7> canvas;  
+
+  
+  
+  std::array<std::unique_ptr<TCanvas>, 8> canvas;  
 
   (canvas[0]).reset(new TCanvas(Form("MIP Cluster-Charge %i",fname), Form("MIP Cluster-Charge %i",fname),1200, 1200));  
 
   (canvas[1]).reset(new TCanvas(Form("Digit Charge %i",fname), Form("Digit Charge %i",fname), 1200, 1200));
+  (canvas[1])->SetLogy();
+  (canvas[1])->SetLogx();
+
+  (canvas[6]).reset(new TCanvas(Form("Digits Freq Small%i",fname), Form("Digits Freq Small %i",fname), 1200, 1200));
+   
+
 
   (canvas[2]).reset(new TCanvas(Form("Digit-Map %i",fname), Form("Digit-Map %i",fname), 1200, 1200));
 
   (canvas[3]).reset(new TCanvas(Form("Digit-Map Avg %i",fname), Form("Digit-Map Avg %i",fname), 1200, 1200));
 
   (canvas[4]).reset(new TCanvas(Form("Digits Per Event %i",fname), Form("Digits Per Event %i",fname), 1200, 1200));
-  
-
+  (canvas[4])->SetLogy();
 
   (canvas[5]).reset(new TCanvas(Form("Map of sel %i",fname), Form("Map of sel%i",fname), 1200, 1200));
 
@@ -381,13 +397,21 @@ void readClusters(int nEvents)
 
     for(const auto& dig : digits){
       Digit::pad2Absolute(dig.getPadID(), &module, &padChX, &padChY);
-
+      const auto& charge = dig.getQ();
       if(padDig[module][padChX][padChY] == true){
-        digCharge[module]->Fill(dig.getQ());
+        digCharge[module]->Fill(charge);
+        if(charge < 4){
+          chargeBelow4[module][static_cast<int>(charge)] += 1; 
+
+        }
+        if(charge <= 10){
+          digCharges[module]->Fill(charge);
+        }
+
       }
 
-      digMap[module]->Fill(padChX, padChY, dig.getQ());
-      digMapAvg[module]->Fill(padChX, padChY, dig.getQ()/5);//numTriggers
+      digMap[module]->Fill(padChX, padChY, charge);
+      digMapAvg[module]->Fill(padChX, padChY, charge/5);//numTriggers
       //digMap[module]->Fill(padChX, padChY, padDigOff[module][padChX][padChY]);
       //padDigits[module][padChX][padChY] += dig.getQ();
     }
@@ -407,7 +431,6 @@ void readClusters(int nEvents)
 
       if(minCharge < charge) {minCharge = charge;}
       if(minCharge < charge) {minCharge = charge;}
-
 
       if (clusSize >= 3 && clusSize <= 7){
         hMipCharge[module]->Fill(charge);
@@ -583,7 +606,7 @@ void readClusters(int nEvents)
     // ========== Digit MAP =========================
     auto pad5 = static_cast<TPad*>(canvas[4]->cd(pos));
     pad5->SetLeftMargin(+.025+pad5->GetLeftMargin());
-
+    pad5->SetLogy(1);
     pad5->SetBottomMargin(.0015+pad5->GetBottomMargin());
     pad5->SetRightMargin(-.0025+pad5->GetRightMargin());
     digPerEvent[iCh]->SetTitleOffset(digPerEvent[iCh]->GetTitleOffset("y")+0.025, "y");
@@ -601,14 +624,33 @@ void readClusters(int nEvents)
 
     // ========== Digit Charge =========================
     auto pad3 = static_cast<TPad*>(canvas[1]->cd(pos));
+    (canvas[1])->SetLogy();
+    (canvas[1])->SetLogx();
+    pad3->SetLogy(1);
+    pad3->SetLogx(1);
     pad3->SetBottomMargin(.0025+pad3->GetBottomMargin());
     pad3->SetLeftMargin(.065+pad3->GetLeftMargin());
     digCharge[iCh]->SetLabelOffset(digCharge[iCh]->GetLabelOffset("y")+0.0015, "y");
     digCharge[iCh]->SetTitleOffset(1.3,"y");
     pad3->SetRightMargin(-.0025+pad3->GetRightMargin());
     digCharge[iCh]->Draw();
+
+   for(int charge = 0; charge <= 4; charge++){
+      cout << " Ch, Charge, num " << iCh << " " << charge << " " << chargeBelow4[iCh][charge] << endl; 
+   }
   }
 
+  for (int iCh = 0; iCh < 7; iCh++) {
+    const auto& pos = posArr[iCh];
+    // ========== Digit Charge =========================
+    auto pad3 = static_cast<TPad*>(canvas[6]->cd(pos));
+    pad3->SetBottomMargin(.0025+pad3->GetBottomMargin());
+    pad3->SetLeftMargin(.065+pad3->GetLeftMargin());
+    digCharges[iCh]->SetLabelOffset(digCharges[iCh]->GetLabelOffset("y")+0.0015, "y");
+    digCharges[iCh]->SetTitleOffset(1.3,"y");
+    pad3->SetRightMargin(-.0025+pad3->GetRightMargin());
+    digCharges[iCh]->Draw();
+  }  
 
   gStyle->SetStatH(0.2); 
   gStyle->SetStatX(0.95);
@@ -629,7 +671,8 @@ void readClusters(int nEvents)
   canvas[2]->Show();
   canvas[3]->Show();
   canvas[4]->Show();
-  //canvas[6]->Show();
+  canvas[6]->Show();
+  canvas[5]->Show();
 
   sleep_for(5000ms);
 
@@ -666,6 +709,7 @@ void readClusters(int nEvents)
       canvas[5]->Show();
     }
    
+
     sleep_for(5000ms);
     string uInputString;
     sleep_for(50ms);

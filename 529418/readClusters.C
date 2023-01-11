@@ -62,7 +62,11 @@ std::vector<o2::hmpid::Trigger> mTriggersFromFile,
 void changeFont();
 
 
-vector<string> dig2Clus(const std::string &fileName, vector<Cluster>& clusters, vector<Trigger>& clusterTriggers, vector<Digit>& digits);
+double largestDiff = std::numeric_limits<double>::min();
+double largestNegDiff = std::numeric_limits<double>::max();
+
+vector<string> dig2Clus(const std::string &fileName, vector<Cluster>& clusters, vector<Trigger>& clusterTriggers, vector<Digit>& digits, double& largestDiff, double& largestNegDiff);
+
 bool mReadFile = false;
 std::string mSigmaCutPar;
 float mSigmaCut[7] = {4, 4, 4, 4, 4, 4, 4};
@@ -79,6 +83,21 @@ void initFileIn(const std::string &fileName);
 
 void strToFloatsSplit(std::string s, std::string delimiter, float *res,
                       int maxElem = 7);
+
+
+struct TriggerTimeInf
+{
+  double  timeInNs;
+  int triggerIndex;
+
+  TriggerTimeInf(double _timeInNs, int _triggerIndex)
+    : timeInNs(_timeInNs)
+    , triggerIndex(_triggerIndex)
+  {}
+
+};
+
+vector<TriggerTimeInf> triggerInfoVec;
 
 #include <filesystem>
 #include <iostream>
@@ -156,7 +175,8 @@ void readClusters(int nEvents)
       if(std::all_of(folderName.begin(), folderName.end(), ::isdigit)){
         fileFound = true;
         std::cout << " folderName " << folderName << std::endl;
-        fileInfo = dig2Clus(pathName, clusters, clusterTriggers, digits);
+       
+        fileInfo = dig2Clus(pathName, clusters, clusterTriggers, digits, largestDiff, largestNegDiff);
         numTriggers = clusterTriggers.size();
 	char* fn = strdup(folderName.c_str());
 	std::cout << " fname " << fn << std::endl;
@@ -234,15 +254,19 @@ void readClusters(int nEvents)
   for(int chamber = 0; chamber < 7; chamber++){
     for(int x = 0; x < 160; x++){
       for(int y = 0; y < 144; y++){
+
+        // verify that pads are selected off:
         if(digMapSel[chamber]->GetBinContent(x,y)==50.){
-          cout << "False padDigOff " << chamber << " x " << x << " y " << y << endl;
+          // cout << "False padDigOff " << chamber << " x " << x << " y " << y << endl;
         }
       }
     }
   }
 
+
+
   const char* trigTimeStr = Form("Trigger Time Freq");
-  triggerTimeFreqHist.reset(new TH1F(trigTimeStr, trigTimeStr, numTriggers/100, 0., 2000000.));
+  triggerTimeFreqHist.reset(new TH1F(trigTimeStr, trigTimeStr, numTriggers/250, largestNegDiff*1.5, largestDiff*1.5));
   triggerTimeFreqHist->SetXTitle("Trigger Time");
   triggerTimeFreqHist->SetYTitle("Frequency");
  
@@ -308,7 +332,6 @@ void readClusters(int nEvents)
       const auto& bc = trig.getBc();
       const auto& time = InteractionRecord::bc2ns(bc, orbit);
       
-
 
       // må endres til per chamber
 
@@ -467,6 +490,8 @@ void readClusters(int nEvents)
     triggerTimeFreqHist->SetTitleOffset(triggerTimeFreqHist->GetTitleOffset("y")*1.5, "y");
     triggerTimeFreqHist->SetTitleOffset(triggerTimeFreqHist->GetTitleOffset("x")*1.5, "x");
 
+    
+   
     triggerTimeFreqHist->SetTitleSize(triggerTimeFreqHist->GetTitleSize("x")*0.75, "x");
     triggerTimeFreqHist->SetTitleSize(triggerTimeFreqHist->GetTitleSize("y")*0.75, "y");
     triggerTimeFreqHist->SetLabelSize(triggerTimeFreqHist->GetLabelSize("x")*0.625, "x");
@@ -691,8 +716,7 @@ void strToFloatsSplit(std::string s, std::string delimiter, float *res,
   return;
 }
 
-
-vector<string> dig2Clus(const std::string &fileName, vector<Cluster>& clusters, vector<Trigger>& clusterTriggers, vector<Digit>& digits) {
+vector<string> dig2Clus(const std::string &fileName, vector<Cluster>& clusters, vector<Trigger>& clusterTriggers, vector<Digit>& digits, double& largestDiff, double& largestNegDiff) {
   long mDigitsReceived, mClustersReceived, mTriggersReceived = 0;
   uint32_t firstTrigger, lastTrigger = 0;
   
@@ -765,9 +789,79 @@ vector<string> dig2Clus(const std::string &fileName, vector<Cluster>& clusters, 
   const auto& trigInfo = Form("Triggers %i, Frequency [Hz]= %.2f " , numTriggers, triggerFrequency); 
   const auto& digClusInfo = Form("Digits %i Clusters %i",
               numDigits, numClusters);
-  //const auto trigger = Form("First Entry %i Last %i", firstTrigger, lastTrigger);
-  
 
+  
+  int trigNum = 0;
+  Trigger trigPrev;
+
+  const auto& fTrig = mTriggersFromFile[0];
+  const auto& lTrig = mTriggersFromFilePtr->back();
+  
+  const auto& irFirst = fTrig.getIr();
+  const auto& irLast = lTrig.getIr();
+
+  const auto& orbitFirst = fTrig.getOrbit();
+  const auto& bcFirst = fTrig.getBc();
+
+  const auto& orbitLast = lTrig.getOrbit();
+  const auto& bcLast = lTrig.getBc();
+
+  const auto& nsFirst = InteractionRecord::bc2ns(bcFirst, orbitFirst);
+  const auto& nsLast = InteractionRecord::bc2ns(bcLast, orbitLast);
+
+
+  const auto prevTimeNsTrig = nsFirst;
+  int bcPrev; unsigned int orbitPrev;
+
+  cout << "First, Ns " << nsFirst << " BC " << bcFirst  << " Orbit " << orbitFirst << endl;
+  cout << "Last , Ns " << nsLast <<  " BC " << bcLast  << " Orbit " << orbitLast << endl;
+
+  for(const auto &trig : *mTriggersFromFilePtr){
+    const int numDigPerTrig = trig.getNumberOfObjects();
+    const int firstTrig = trig.getFirstEntry();
+    const int lastTrig = trig.getLastEntry();
+
+    auto tDelta = (trig.getIr()).differenceInBCNS(trigPrev.getIr());
+
+   
+    const auto& orbit = trig.getOrbit();
+    const auto& bc = trig.getBc();
+    
+    const auto timeTrigger = InteractionRecord::bc2ns(bc, orbit);
+    
+
+
+    triggerInfoVec.emplace_back(timeTrigger, trigNum);
+    trigPrev = trig;
+    if(trigNum > 0){
+      tDelta = InteractionRecord::bc2ns(bc, orbit) - InteractionRecord::bc2ns(bcPrev, orbitPrev);
+
+
+      if(tDelta>largestDiff){
+	largestDiff = tDelta;
+      }
+
+      if(tDelta<largestNegDiff){
+	largestNegDiff = tDelta;
+      }
+
+      if(trigNum%100==0)
+	cout << " Filled " << trigNum << " TimeDiff " << tDelta << " Time Ns " << (trig.getIr()).bc2ns() << " Bc " << bc << " Orbit " << orbit << endl; 
+      
+      // just to check theyre equal:
+      //cout << "diff trig ir "<< (trig.getIr()).bc2ns() - timeTrigger << endl;
+
+      /*if(tDif < -1000000 || tDif > 1000000){ 
+        //trigTime->SetPoint(trigNum, trigNum, 0.0f);
+      } else {trigTime->SetPoint(trigNum, trigNum, tDif);}*/
+      //cout << "Filled " << trigNum << " Time " << tDif;
+    }
+    trigNum++;
+    bcPrev = bc; orbitPrev = orbit;
+  }
+  
+  cout << " largest difference " << largestDiff << endl;
+  cout << " largest negative   " << largestNegDiff << endl;
   
   const auto durInfo = Form("Duration of triggers = %.2f min", durMin);
   return  {trigInfo, digClusInfo, ratioInfo, durInfo};

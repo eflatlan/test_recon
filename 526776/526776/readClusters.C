@@ -276,11 +276,21 @@ void readClusters(int nEvents)
 
   for(int i = 0; i<3; i++){
     const char* trigTimeStr = Form("Trigger Time Freq%i",i);
-    triggerTimeFreqHist[i].reset(new TH1F(trigTimeStr, trigTimeStr, 50, largestNegDiff*1.5, largestDiff*1.5));
+    if(i==0){
+     triggerTimeFreqHist[i].reset(new TH1F(trigTimeStr, trigTimeStr, 50, largestNegDiff*1.5, largestDiff*1.5));
+    } else if (i==1) {
+     triggerTimeFreqHist[i].reset(new TH1F(trigTimeStr, trigTimeStr, 10, 0, 500000));
+    } else if (i==2) {
+     triggerTimeFreqHist[i].reset(new TH1F(trigTimeStr, trigTimeStr, 10, 0, 1000000));
+    } 
+
+
     triggerTimeFreqHist[i]->SetXTitle("Trigger Time");
     triggerTimeFreqHist[i]->SetYTitle("Frequency");
   }
 
+  triggerTimeFreqHist[1]->SetBins(50,0,100000);
+  triggerTimeFreqHist[2]->SetBins(50,0,1000000);
  
   const char* trigEvtStr = Form("Trigger Time; Event Number; Delta Time");
   trigTime.reset(new TGraph);
@@ -366,9 +376,14 @@ void readClusters(int nEvents)
         //cout << "Filled " << trigNum << " Time " << tDif;
       }
 
+      if(tDif<500000)
+        triggerTimeFreqHist[2]->Fill(tDif);
+
+      if(tDif<500000*20)
+        triggerTimeFreqHist[1]->Fill(tDif);
+
       triggerTimeFreqHist[0]->Fill(tDif);
-      triggerTimeFreqHist[1]->Fill(tDif);
-      triggerTimeFreqHist[2]->Fill(tDif);
+
 
       //digPerEventFreq->Fill(numDigPerTrig*rel);
 
@@ -508,8 +523,6 @@ void readClusters(int nEvents)
     tpvs[0]->Draw();
 
 
-  triggerTimeFreqHist[1]->SetBins(50,0,1000000);
-  triggerTimeFreqHist[2]->SetBins(50,0,10000000);
   for (int i = 0; i < 3; i++)
   { 
     TPad* pad2;

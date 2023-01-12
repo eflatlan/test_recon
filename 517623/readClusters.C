@@ -252,8 +252,10 @@ void readClusters(int nEvents)
     for(int x = 0; x < 160; x++){
       for(int y = 0; y < 144; y++){
         if(!padDig[chamber][x][y]){
-          digMapSel[chamber]->Fill(x, y, 50.);
+          digMapSel[chamber]->Fill(x, y, 500000.);
           //cout << "False padDigOff " << chamber << " x " << x << " y " << y << endl;
+        } else {
+          digMapSel[chamber]->Fill(x, y, 10.);
         }
       }
     }
@@ -411,7 +413,7 @@ void readClusters(int nEvents)
       }
 
       digMap[module]->Fill(padChX, padChY, charge);
-      digMapAvg[module]->Fill(padChX, padChY, charge/5);//numTriggers
+      digMapAvg[module]->Fill(padChX, padChY, charge/numTriggers);
       //digMap[module]->Fill(padChX, padChY, padDigOff[module][padChX][padChY]);
       //padDigits[module][padChX][padChY] += dig.getQ();
     }
@@ -619,23 +621,28 @@ void readClusters(int nEvents)
   gStyle->SetLabelOffset(0.00525, "y");
 
 
-
+  std::unique_ptr<TCanvas> digMapSelCanv;
+  digMapSelCanv.reset(new TCanvas(Form("Pads turned off by user%i",fname), Form("Pads turned off by user%i",fname), 1200, 1200));
+  digMapSelCanv->Divide(3,3);
+  //digMapSelCanv->cd(3);
   for (int iCh = 0; iCh < 7; iCh++) {
     const auto& pos = posArr[iCh];
     // ========== Digit Charge =========================
-    auto pad3 = static_cast<TPad*>(canvas[5]->cd(pos));
+    auto pad3 = static_cast<TPad*>(digMapSelCanv->cd(pos));
     pad3->SetBottomMargin(.0025+pad3->GetBottomMargin());
     pad3->SetLeftMargin(.065+pad3->GetLeftMargin());
     digMapSel[iCh]->SetLabelOffset(digMapSel[iCh]->GetLabelOffset("y")+0.0015, "y");
     digMapSel[iCh]->SetTitleOffset(1.3,"y");
     pad3->SetRightMargin(-.0025+pad3->GetRightMargin());
-    
-    if(iCh > 4) {digCharges[iCh]->Draw();}
-    //digMapSel[iCh]->Draw();
-  } 
+    digMapSel[iCh]->SetMarkerStyle(3);
+    digMapSel[iCh]->Draw("Colz");
+    digMapSel[iCh]->SetStats(kFALSE);
+  }
 
+  digMapSelCanv->Show();
 
-  TCanvas*  t = new TCanvas(Form("Digits SmallRange%i",fname), Form("Digits SmallRange %i",fname), 1200, 1200);
+  std::unique_ptr<TCanvas> t;
+  t.reset(new TCanvas(Form("Digits SmallRange%i",fname), Form("Digits SmallRange %i",fname), 1200, 1200));
   t->Divide(3,3);
   t->cd(3);
   (tpvs.back())->Draw();
@@ -667,12 +674,9 @@ void readClusters(int nEvents)
     digCharge[iCh]->SetLabelOffset(digCharge[iCh]->GetLabelOffset("y")+0.0015, "y");
     digCharge[iCh]->SetTitleOffset(1.3,"y");
     pad3->SetRightMargin(-.0025+pad3->GetRightMargin());
-    
-    if(iCh > 4) {
-      digCharges[iCh]->Draw();
-    } else {
-      digCharge[iCh]->Draw();
-    }
+   
+    digCharge[iCh]->Draw();
+
    for(int charge = 0; charge <= 4; charge++){
       cout << " Ch, Charge, num " << iCh << " " << charge << " " << chargeBelow4[iCh][charge] << endl; 
    }
@@ -724,18 +728,6 @@ void readClusters(int nEvents)
   bool userInput = false;
   while(!userInput){
     sleep_for(5000ms);
-    for (int iCh = 0; iCh < 7; iCh++) {
-      const auto& pos = posArr[iCh];
-
-      // ========== Digit Charge =========================
-      auto pad3 = static_cast<TPad*>(canvas[5]->cd(pos));
-      pad3->SetBottomMargin(.0015+pad3->GetBottomMargin());
-      pad3->SetRightMargin(-.0025+pad3->GetRightMargin());
-      digMapSel[iCh]->SetLabelOffset(digMapSel[iCh]->GetLabelOffset("y")+0.0015, "y");
-      digMapSel[iCh]->SetTitleOffset(1.3,"y");
-      digMapSel[iCh]->Draw();
-      canvas[5]->Show();
-    }
    
 
     sleep_for(5000ms);

@@ -513,18 +513,19 @@ void readClusters(int nEvents)
     TPad* pad2;
     if(i < 1){ 
       pad2 = static_cast<TPad*>(temp1->cd(i+1));
+      trigTime->Draw("A*");
     } else {
       pad2 = static_cast<TPad*>(temp1->cd(i+2));
-    }
-    pad2->SetLeftMargin(.0375+pad2->GetLeftMargin());
-    pad2->SetBottomMargin(.0375+pad2->GetBottomMargin());
-    pad2->SetRightMargin(.0375+pad2->GetRightMargin());
-    triggerTimeFreqHist[i]->SetTitleOffset(triggerTimeFreqHist[i]->GetTitleOffset("y")*1.5, "xy");
+      pad2->SetLeftMargin(.0375+pad2->GetLeftMargin());
+      pad2->SetBottomMargin(.0375+pad2->GetBottomMargin());
+      pad2->SetRightMargin(.0375+pad2->GetRightMargin());
+      triggerTimeFreqHist[i]->SetTitleOffset(triggerTimeFreqHist[i]->GetTitleOffset("y")*1.5, "xy");
        
-    triggerTimeFreqHist[i]->SetTitleSize(triggerTimeFreqHist[i]->GetTitleSize("x")*0.75, "xy");
-    triggerTimeFreqHist[i]->SetLabelSize(triggerTimeFreqHist[i]->GetLabelSize("x")*0.625, "x");
-    triggerTimeFreqHist[i]->SetLabelSize(triggerTimeFreqHist[i]->GetLabelSize("y")*0.75, "y");
-    triggerTimeFreqHist[i]->Draw();
+      triggerTimeFreqHist[i]->SetTitleSize(triggerTimeFreqHist[i]->GetTitleSize("x")*0.75, "xy");
+      triggerTimeFreqHist[i]->SetLabelSize(triggerTimeFreqHist[i]->GetLabelSize("x")*0.625, "x");
+      triggerTimeFreqHist[i]->SetLabelSize(triggerTimeFreqHist[i]->GetLabelSize("y")*0.75, "y");
+      triggerTimeFreqHist[i]->Draw();
+    }
 
   }
 
@@ -562,6 +563,8 @@ void readClusters(int nEvents)
   trigSort->Draw();
   auto pad7 = static_cast<TPad*>(temp2->cd(4));
   trigSort2->Draw();
+  temp2->SaveAs(Form("Trigger Frequency Hist and Graph %i",fname));
+
 
   for (int iCh = 0; iCh < 7; iCh++) {
     const auto& pos = posArr[iCh];

@@ -62,10 +62,15 @@ std::vector<o2::hmpid::Trigger> mTriggersFromFile,
 void changeFont();
 
 
+TH1F* trigSort = new TH1F("trigSort", "trigSort", 50, 0., 1000000000.);
+TH1F* trigSort2 = new TH1F("trigSort2", "trigSort2", 50, 0., 1000000.);
+
+void sortTriggers(vector<Trigger>& sortedTriggers, TGraph& trigTimeSortStd, TH1F& trigSortHist);
+//void sortTriggers(vector<Trigger>& sortedTriggers, TGraph& trigTimeSortStd);
 double largestDiff = std::numeric_limits<double>::min();
 double largestNegDiff = std::numeric_limits<double>::max();
 
-vector<string> dig2Clus(const std::string &fileName, vector<Cluster>& clusters, vector<Trigger>& clusterTriggers, vector<Digit>& digits, double& largestDiff, double& largestNegDiff);
+vector<string> dig2Clus(const std::string &fileName, vector<Cluster>& clusters, vector<Trigger>& clusterTriggers, vector<Digit>& digits, double& largestDiff, double& largestNegDiff, TGraph& triggerSorted, TH1F& trigSortHist);
 
 bool mReadFile = false;
 std::string mSigmaCutPar;
@@ -130,8 +135,10 @@ void readClusters(int nEvents)
 
 
   std::array<std::unique_ptr<TH1F>, 3> triggerTimeFreqHist;
+  TH1F trigSortHist;
+
   std::unique_ptr<TH1F> digPerEventFreq;
-  std::unique_ptr<TGraph> trigTime;
+  std::unique_ptr<TGraph> trigTime, trigTimeSortStd;
   //double padDigits[7][160][144];
   // changeFont();			     // specify folder to save files in
   // SaveFolder("clusterChambers");   // apply custom canvas figure options
@@ -177,7 +184,8 @@ void readClusters(int nEvents)
         fileFound = true;
         std::cout << " folderName " << folderName << std::endl;
        
-        fileInfo = dig2Clus(pathName, clusters, clusterTriggers, digits, largestDiff, largestNegDiff);
+        fileInfo = dig2Clus(pathName, clusters, clusterTriggers, digits, largestDiff, largestNegDiff, *trigTimeSortStd, trigSortHist);
+
         numTriggers = clusterTriggers.size();
 	char* fn = strdup(folderName.c_str());
 	std::cout << " fname " << fn << std::endl;
@@ -390,6 +398,9 @@ void readClusters(int nEvents)
 
       triggerTimeFreqHist[0]->Fill(tDif);
 
+      trigTime->SetPointX(trigNum, static_cast<double>(tDif));
+
+      //trigTime->SetPoint(trigNum, static_cast<double>(trigNum), static_cast<double>(tDif));
 
       //digPerEventFreq->Fill(numDigPerTrig*rel);
 
@@ -554,11 +565,42 @@ void readClusters(int nEvents)
 
   }
 
+
+
+
   gStyle->SetOptStat("eimr");
   gStyle->SetStatX(0.95);
   temp1->Show();
   temp1->SaveAs(Form("TriggerFreq_%i_.png",fname));
 
+  /*
+   **********************************
+   Sorted Triggers   
+   **********************************
+  */
+
+
+
+
+  std::unique_ptr<TCanvas> temp2;
+  temp2.reset(new TCanvas(Form("temp2%i",fname), Form("temp2%i",fname),1200, 2000));
+  temp2->Divide(2,2);
+  temp2->cd(2);
+  tpvs[0]->Draw();
+  
+  auto pad5 = static_cast<TPad*>(temp2->cd(1));
+
+  trigTime->Sort();
+  TH1F* trigTimeSortRoot = trigTime->GetHistogram();
+  trigTimeSortRoot->Draw();
+  
+  auto pad6 = static_cast<TPad*>(temp2->cd(3));
+  //TH1F* trigTimeSortCpp = trigTimeSortStd->GetHistogram();
+  //trigTimeSortCpp->Draw();
+  trigSort->Draw();
+  auto pad7 = static_cast<TPad*>(temp2->cd(4));
+  //trigSortHist.Draw();
+  trigSort2->Draw();
 
   for (int iCh = 0; iCh < 7; iCh++) {
     const auto& pos = posArr[iCh];
@@ -832,7 +874,8 @@ void strToFloatsSplit(std::string s, std::string delimiter, float *res,
   return;
 }
 
-vector<string> dig2Clus(const std::string &fileName, vector<Cluster>& clusters, vector<Trigger>& clusterTriggers, vector<Digit>& digits, double& largestDiff, double& largestNegDiff) {
+vector<string> dig2Clus(const std::string &fileName, vector<Cluster>& clusters, vector<Trigger>& clusterTriggers, vector<Digit>& digits, double& largestDiff, double& largestNegDiff, TGraph& triggerSorted, TH1F& trigSortHist)
+{
   long mDigitsReceived, mClustersReceived, mTriggersReceived = 0;
   uint32_t firstTrigger, lastTrigger = 0;
   
@@ -843,7 +886,8 @@ vector<string> dig2Clus(const std::string &fileName, vector<Cluster>& clusters, 
 
   std::cout << "[HMPID DClusterization - run() ] Enter ...";
 
-  
+
+
   clusters.clear();
   clusterTriggers.clear();
   cout << "[HMPID DClusterization - run() ] Entries  = " << mTree->GetEntries() << endl; 
@@ -937,6 +981,9 @@ vector<string> dig2Clus(const std::string &fileName, vector<Cluster>& clusters, 
 
   cout << "First, Ns " << nsFirst << " BC " << bcFirst  << " Orbit " << orbitFirst << endl;
   cout << "Last , Ns " << nsLast <<  " BC " << bcLast  << " Orbit " << orbitLast << endl;
+
+  vector<Trigger> sortedTriggers = *mTriggersFromFilePtr;
+  sortTriggers(sortedTriggers, triggerSorted, trigSortHist);
 
   for(const auto &trig : *mTriggersFromFilePtr){
     const int numDigPerTrig = trig.getNumberOfObjects();
@@ -1089,6 +1136,51 @@ void setPadChannel(bool (&padDigOff)[7][160][144], int chamber, int xLow, int xH
 }
 
 
+void sortTriggers(vector<Trigger>& sortedTriggers, TGraph& trigTimeSortStd, TH1F& trigSortHist)
+{
+
+  cout << "Sorting triggers length =  " << sortedTriggers.size() << endl; 
+  //auto& begin = sortedTriggers.begin();
+  //auto& end = sortedTriggers.end();
+
+  std::sort(sortedTriggers.begin(),  sortedTriggers.end(), [](const auto& a, const auto& b)
+  {
+    return (a.getIr()).bc2ns() < (b.getIr()).bc2ns();
+  });
+
+  cout << "Iterating through Sorted triggers " << endl;  
+  int trigNum = 0;
+  Trigger trigPrev;
+   
+  const auto firstTrig = sortedTriggers[0];
+  const auto lastTrig = sortedTriggers.back();
+  const auto& tDifTotal = (firstTrig.getIr()).differenceInBCNS(lastTrig.getIr());
+  
+  cout << "Diff Between first and last trigger " << tDifTotal << endl;  
+  
+  for(const auto& trig : sortedTriggers){
+
+
+    const auto& tS = (trig.getIr()).bc2ns();
+
+    const auto& tE = (trigPrev.getIr()).bc2ns();
+
+
+    const auto& tDif2 = tE-tS;
+    const auto& tDif = (trig.getIr()).differenceInBCNS(trigPrev.getIr());
+    //trigTimeSortStd.SetPoint(trigNum, static_cast<double>(trigNum), static_cast<double>(tDif));
+    trigNum++;
+    cout << "  tDif " << tDif << endl;
+    cout << "  tDif2 " << tDif2 << endl;
+    trigSort->Fill(tDif);
+    trigSort2->Fill(tDif);
+    trigSortHist.Fill(tDif);
+    trigPrev = trig;
+  }
+
+  cout << "Triggers Sorted" << endl;  
+
+}
 
 
 

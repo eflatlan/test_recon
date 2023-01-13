@@ -692,6 +692,7 @@ void readClusters(int nEvents)
   }
   digMapLowCan->Show();
 
+
   std::unique_ptr<TCanvas> t;
   t.reset(new TCanvas(Form("Digits SmallRange%i",fname), Form("Digits SmallRange %i",fname), 1200, 1200));
   t->Divide(3,3);
@@ -748,7 +749,7 @@ void readClusters(int nEvents)
   canvas[4]->SaveAs(Form("DigitsPerEvent_%i_.png",fname));
 
   t->SaveAs(Form("Digit_Charge_SmallRange%i_.png",fname));
-
+  digMapLowCan->SaveAs(Form("Digits below 4 %i_.png",fname));
   canvas[0]->Show();
   canvas[1]->Show();
   t->Show();

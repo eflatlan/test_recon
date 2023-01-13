@@ -33,6 +33,7 @@
 #include "CommonDataFormat/InteractionRecord.h"
 
 // C++ header files and libraries
+#include <math.h>
 #include <chrono>
 #include <thread>
 #include <ctime>
@@ -62,10 +63,15 @@ std::vector<o2::hmpid::Trigger> mTriggersFromFile,
 void changeFont();
 
 
+TH1F* trigSort = new TH1F("trigSort", "trigSort", 50, 0., 1000000000.);
+TH1F* trigSort2 = new TH1F("trigSort2", "trigSort2", 50, 0., 1000000.);
+
+void sortTriggers(vector<Trigger>& sortedTriggers);
+//void sortTriggers(vector<Trigger>& sortedTriggers, TGraph& trigTimeSortStd);
 double largestDiff = std::numeric_limits<double>::min();
 double largestNegDiff = std::numeric_limits<double>::max();
 
-vector<string> dig2Clus(const std::string &fileName, vector<Cluster>& clusters, vector<Trigger>& clusterTriggers, vector<Digit>& digits, double& largestDiff, double& largestNegDiff);
+vector<string> dig2Clus(const std::string &fileName, vector<Cluster>& clusters, vector<Trigger>& clusterTriggers, vector<Digit>& digits);
 
 bool mReadFile = false;
 std::string mSigmaCutPar;
@@ -126,11 +132,13 @@ void readClusters(int nEvents)
   std::array<std::unique_ptr<TGraph>, 7> trigGraph;
   
   std::array<std::unique_ptr<TH1F>, 7> digCharge, hMipCharge, digPerEvent, digCharges;
-  std::array<std::unique_ptr<TH2F>, 7> digMap, digMapAvg, digMapSel, test;
+  std::array<std::unique_ptr<TH2F>, 7> digMap, digMapAvg, digMapSel, test, mapCharge4;
 
 
+  std::array<std::unique_ptr<TH1F>, 3> triggerTimeFreqHist;
+  TH1F trigSortHist;
 
-  std::unique_ptr<TH1F> triggerTimeFreqHist, digPerEventFreq;
+  std::unique_ptr<TH1F> digPerEventFreq;
   std::unique_ptr<TGraph> trigTime;
   //double padDigits[7][160][144];
   // changeFont();			     // specify folder to save files in
@@ -177,7 +185,8 @@ void readClusters(int nEvents)
         fileFound = true;
         std::cout << " folderName " << folderName << std::endl;
        
-        fileInfo = dig2Clus(pathName, clusters, clusterTriggers, digits, largestDiff, largestNegDiff);
+        fileInfo = dig2Clus(pathName, clusters, clusterTriggers, digits);
+
         numTriggers = clusterTriggers.size();
 	char* fn = strdup(folderName.c_str());
 	std::cout << " fname " << fn << std::endl;
@@ -192,7 +201,6 @@ void readClusters(int nEvents)
 
   float avgDigits = static_cast<float>(1.0f*digits.size()/numTriggers);
   
-
   for (int i = 0; i < 7; i++) {
 
     const char* canStringMip = Form("MIP-Charge %i", i);
@@ -220,24 +228,23 @@ void readClusters(int nEvents)
     digMap[i]->SetXTitle("x [cm]");
     digMap[i]->SetYTitle("y [cm]");
 
-
+    const char* mapCharge4Str = Form("Chamber %i Digits with Charge < 4 ", i);
+    mapCharge4[i].reset(new TH2F(mapCharge4Str, mapCharge4Str, 160, 0, 159, 144, 0, 143));
+    mapCharge4[i]->SetXTitle("x [cm]");
+    mapCharge4[i]->SetYTitle("y [cm]");
+    
 
     const char* canDigSel = Form("Selected Pads %i", i);
     digMapSel[i].reset(new TH2F(canDigSel, canDigSel, 160, 0, 159, 144, 0, 143));
     //digMap[i].reset(new TH2F(canDigMap, canDigMap, 160*0.8, 0, 159*0.8, 144*0.8, 0, 160*0.8));
     digMapSel[i]->SetXTitle("x [cm]");
     digMapSel[i]->SetYTitle("y [cm]");
-    
 
     const char* canDigAvg = Form("Avg Charge Per Pad %i", i);
     digMapAvg[i].reset(new TH2F(canDigAvg, canDigAvg, 160, 0, 159, 144, 0, 143));
     //digMap[i].reset(new TH2F(canDigMap, canDigMap, 160*0.8, 0, 159*0.8, 144*0.8, 0, 160*0.8));
     digMapAvg[i]->SetXTitle("x [cm]");
     digMapAvg[i]->SetYTitle("y [cm]");
-
-
-    //const char* canDigMap = Form("Digit Map %i", i);
-    //strigGraph.reset(new TGraph(, , 160, 0, 159, 144, 0, 143));
 
     const char* digEvtFreqStr = Form("Digits Per Event Frequency%i",i);
     digPerEvent[i].reset(new TH1F(digEvtFreqStr, digEvtFreqStr, 500, 0., .5));
@@ -274,18 +281,27 @@ void readClusters(int nEvents)
   }
 
 
+  for(int i = 0; i<3; i++){
+    const char* trigTimeStr = Form("Trigger Time Freq%i",i);
+    if(i==0){
+     triggerTimeFreqHist[i].reset(new TH1F(trigTimeStr, trigTimeStr, 50, largestNegDiff*1.5, largestDiff*1.5));
+    } else if (i==1) {
+     triggerTimeFreqHist[i].reset(new TH1F(trigTimeStr, trigTimeStr, 10, 0, 500000));
+    } else if (i==2) {
+     triggerTimeFreqHist[i].reset(new TH1F(trigTimeStr, trigTimeStr, 10, 0, 1000000));
+    } 
 
-  const char* trigTimeStr = Form("Trigger Time Freq");
-  triggerTimeFreqHist.reset(new TH1F(trigTimeStr, trigTimeStr, 50, largestNegDiff*1.5, largestDiff*1.5));
-  triggerTimeFreqHist->SetXTitle("Trigger Time");
-  triggerTimeFreqHist->SetYTitle("Frequency");
+
+    triggerTimeFreqHist[i]->SetXTitle("Trigger Time");
+    triggerTimeFreqHist[i]->SetYTitle("Frequency");
+  }
+
+  triggerTimeFreqHist[1]->SetBins(50,0,100000);
+  triggerTimeFreqHist[2]->SetBins(50,0,1000000);
  
-  const char* trigEvtStr = Form("Trigger Time; Event Number; Delta Time");
+  const char* trigEvtStr = Form("Trigger Frequency per Trigger Time; Time [nS]; Delta Time");
   trigTime.reset(new TGraph);
-  trigTime->SetTitle(trigEvtStr);
-
-
-  
+  trigTime->SetTitle(trigEvtStr);  
   
   std::array<std::unique_ptr<TCanvas>, 8> canvas;  
 
@@ -295,9 +311,6 @@ void readClusters(int nEvents)
   (canvas[1])->SetLogy();
   (canvas[1])->SetLogx();
 
-   
-
-
   (canvas[2]).reset(new TCanvas(Form("Digit-Map %i",fname), Form("Digit-Map %i",fname), 1200, 1200));
 
   (canvas[3]).reset(new TCanvas(Form("Digit-Map Avg %i",fname), Form("Digit-Map Avg %i",fname), 1200, 1200));
@@ -305,8 +318,7 @@ void readClusters(int nEvents)
   (canvas[4]).reset(new TCanvas(Form("Digits Per Event %i",fname), Form("Digits Per Event %i",fname), 1200, 1200));
   (canvas[4])->SetLogy();
 
-  (canvas[5]).reset(new TCanvas(Form("Map of sel %i",fname), Form("Map of sel%i",fname), 1200, 1200));
-
+  (canvas[5]).reset(new TCanvas(Form("PlaceHolder %i",fname), Form("PlaceHolder %i",fname),1200, 1200));  
 
   canvas[0]->SetLeftMargin(.1+canvas[0]->GetLeftMargin());
   canvas[1]->SetLeftMargin(.175+canvas[1]->GetLeftMargin());
@@ -339,6 +351,7 @@ void readClusters(int nEvents)
     std::array<float, 7> avgDig;
 
     const auto rel = 100.0/(144*160);
+
     for(const auto& trig : mTriggersFromFile){
       oneEventDigits.clear();
       const int numDigPerTrig = trig.getNumberOfObjects();
@@ -349,26 +362,20 @@ void readClusters(int nEvents)
       const auto& orbit = trig.getOrbit();
       const auto& bc = trig.getBc();
       const auto& time = InteractionRecord::bc2ns(bc, orbit);
-      
-
-      // må endres til per chamber
 
       const auto& tDif = (trig.getIr()).differenceInBCNS(trigPrev.getIr());
 
-      
-      if(trigNum > 0 && trigNum < 50){
-
-        if(tDif < -1000000 || tDif > 1000000){ 
-          //trigTime->SetPoint(trigNum, trigNum, 0.0f);
-        } else {trigTime->SetPoint(trigNum, trigNum, tDif);}
-        //cout << "Filled " << trigNum << " Time " << tDif;
+      if(trigNum > 0 && time > pow(10,13)){    
+        triggerTimeFreqHist[2]->Fill(tDif);
+        triggerTimeFreqHist[1]->Fill(tDif);
+        triggerTimeFreqHist[0]->Fill(tDif);
+        trigTime->SetPoint(trigNum-1, static_cast<double>(time), tDif);
       }
 
-      triggerTimeFreqHist->Fill(tDif);
+      if(time < pow(10, 13)){
+        cout << "Time "<< time << " Trigger Number " << trigNum << " Tdiff " << tDif << endl ;
+      }
 
-      //digPerEventFreq->Fill(numDigPerTrig*rel);
-
-      //cout << trigNum << "Filled histograms w triggerTimeFreqHist " << tDif << endl << " digPerFreq " << numDigPerTrig*rel << endl;
       std::array<int, 7> cntCh = {0,0,0,0,0,0,0};
 
       for(int j = firstTrig; j < lastTrig; j++){
@@ -377,17 +384,12 @@ void readClusters(int nEvents)
         //cout << "Fill Chamber, trNum " <<  module << " " << trigNum << endl;
         //cout << "Total " << cntCh[module] << endl;
 	cntCh[module]++;
-	avgDig[module]++;
-	
+	avgDig[module]++;	
       }
-      //for(auto c : cntCh){cout << "  " << c << endl;}
- 	//cout << endl;
-
 
       for(int ch = 0; ch < 7; ch++){
         digPerEvent[ch]->Fill(rel*cntCh[ch]);
       }
-
 
       tprev = time;
       trigPrev = trig;
@@ -404,12 +406,11 @@ void readClusters(int nEvents)
         digCharge[module]->Fill(charge);
         if(charge < 4){
           chargeBelow4[module][static_cast<int>(charge)] += 1; 
-
+          mapCharge4[module]->Fill(padChX, padChY, charge);
         }
         if(charge <= 10){
           digCharges[module]->Fill(charge);
         }
-
       }
 
       digMap[module]->Fill(padChX, padChY, charge);
@@ -461,6 +462,8 @@ void readClusters(int nEvents)
 
   vector<const char*> tpvTexts{"MIP Clusters Charge", "Digits-Charge, logx logy", "Digits-Map", "Digits-Map Avg", "Digits Per Event", "Map of Evaluated Areas", "Digits Charge Small Scale"};
 
+  Printf("Marker1 = %i", 999999999999);
+
   int j = 0;
   for(auto& tpv: tpvs){
     tpv.reset(new TPaveText(0.05, .05, .9, .9));
@@ -472,6 +475,7 @@ void readClusters(int nEvents)
   tpvs[1]->AddText("Digits-Charge");
   tpvs[2]->AddText("Digits-Map"); */ 
 
+  Printf("Marker2 = %i", 999999999999);
 
   for(auto& tpv: tpvs){
     tpv->AddText(f1);
@@ -496,37 +500,70 @@ void readClusters(int nEvents)
   gStyle->SetStatH(0.3); 
     
 
-
+  Printf("Marker3 = %i", 999999999999);
   std::unique_ptr<TCanvas> temp1;
-  temp1.reset(new TCanvas(Form("temp1%i",fname), Form("temp1%i",fname),1200, 2000));
-  temp1->Divide(2,1);
-  { 
-
+  temp1.reset(new TCanvas(Form("Trigger Time %i",fname), Form("temp1%i",fname),1200, 2000));
+  temp1->Divide(2,2);
     temp1->cd(2);
-
     tpvs[0]->Draw();
-    auto pad2 = static_cast<TPad*>(temp1->cd(1));
 
-    pad2->SetLeftMargin(.0375+pad2->GetLeftMargin());
 
-    pad2->SetBottomMargin(.0375+pad2->GetBottomMargin());
-    pad2->SetRightMargin(.0375+pad2->GetRightMargin());
+  for (int i = 0; i < 3; i++)
+  { 
+    TPad* pad2;
+    if(i < 1){ 
+      pad2 = static_cast<TPad*>(temp1->cd(i+1));
+      trigTime->Draw("A*");
+    } else {
+      pad2 = static_cast<TPad*>(temp1->cd(i+2));
+      pad2->SetLeftMargin(.0375+pad2->GetLeftMargin());
+      pad2->SetBottomMargin(.0375+pad2->GetBottomMargin());
+      pad2->SetRightMargin(.0375+pad2->GetRightMargin());
+      triggerTimeFreqHist[i]->SetTitleOffset(triggerTimeFreqHist[i]->GetTitleOffset("y")*1.5, "xy");
+       
+      triggerTimeFreqHist[i]->SetTitleSize(triggerTimeFreqHist[i]->GetTitleSize("x")*0.75, "xy");
+      triggerTimeFreqHist[i]->SetLabelSize(triggerTimeFreqHist[i]->GetLabelSize("x")*0.625, "x");
+      triggerTimeFreqHist[i]->SetLabelSize(triggerTimeFreqHist[i]->GetLabelSize("y")*0.75, "y");
+      triggerTimeFreqHist[i]->Draw();
+    }
 
-    triggerTimeFreqHist->SetTitleOffset(triggerTimeFreqHist->GetTitleOffset("y")*1.5, "y");
-    triggerTimeFreqHist->SetTitleOffset(triggerTimeFreqHist->GetTitleOffset("x")*1.5, "x");
-
-    
-   
-    triggerTimeFreqHist->SetTitleSize(triggerTimeFreqHist->GetTitleSize("x")*0.75, "x");
-    triggerTimeFreqHist->SetTitleSize(triggerTimeFreqHist->GetTitleSize("y")*0.75, "y");
-    triggerTimeFreqHist->SetLabelSize(triggerTimeFreqHist->GetLabelSize("x")*0.625, "x");
-    triggerTimeFreqHist->SetLabelSize(triggerTimeFreqHist->GetLabelSize("y")*0.75, "y");
-    triggerTimeFreqHist->Draw();
   }
+
   gStyle->SetOptStat("eimr");
   gStyle->SetStatX(0.95);
   temp1->Show();
   temp1->SaveAs(Form("TriggerFreq_%i_.png",fname));
+
+
+  Printf("Marker4 = %i", 999999999999);
+  /*
+   **********************************
+   Sorted Triggers   
+   **********************************
+  */
+
+  std::unique_ptr<TCanvas> temp2;
+  temp2.reset(new TCanvas(Form("temp2%i",fname), Form("temp2%i",fname),1200, 2000));
+  temp2->Divide(2,2);
+  temp2->cd(2);
+  tpvs[0]->Draw();
+  
+  auto pad5 = static_cast<TPad*>(temp2->cd(1));
+
+  for(int ent = 0; ent < 100; ent++){
+    cout<< ent << "Grraph entry X " << trigTime->GetPointX(ent) << endl;
+    cout<< ent << "Grraph entry Y " << trigTime->GetPointY(ent) << endl;
+  }
+
+  //trigTime->SetMinimum(pow(10,12));
+  //trigTime->Draw("AC*");
+  trigTime->Draw("A*");
+
+  auto pad6 = static_cast<TPad*>(temp2->cd(3));
+  trigSort->Draw();
+  auto pad7 = static_cast<TPad*>(temp2->cd(4));
+  trigSort2->Draw();
+  temp2->SaveAs(Form("Trigger Frequency Hist and Graph %i",fname));
 
 
   for (int iCh = 0; iCh < 7; iCh++) {
@@ -559,10 +596,9 @@ void readClusters(int nEvents)
   gStyle->SetStatW(0.3);
   gStyle->SetStatH(0.6); 
     
-
+  Printf("Marker5 = %i", 999999999999);
   // avg digits charge
   for (int iCh = 0; iCh < 7; iCh++) {
-    //(*digMapAvg[iCh]) = (*digMap[iCh])/(*digMapCount[iCh]);
     const auto& pos = posArr[iCh];
     // ========== Digit MAP =========================
     auto pad5 = static_cast<TPad*>(canvas[3]->cd(pos));
@@ -594,6 +630,7 @@ void readClusters(int nEvents)
     //hMipCharge[iCh]->SetTitle(Form("Constant %03.1f \n MPV %03.1f Sigma %03.1f", Constant, MPV, Sigma));
     hMipCharge[iCh]->Draw();
   }
+  Printf("Marker3 = %i", 999999999999);
   gStyle->SetStatX(0.95);
   //drawMipCharge(hMipCharge)
 
@@ -635,11 +672,34 @@ void readClusters(int nEvents)
     digMapSel[iCh]->SetTitleOffset(1.3,"y");
     pad3->SetRightMargin(-.0025+pad3->GetRightMargin());
     digMapSel[iCh]->SetMarkerStyle(3);
-    digMapSel[iCh]->Draw("Colz");
     digMapSel[iCh]->SetStats(kFALSE);
+    digMapSel[iCh]->Draw("Colz");
   }
 
   digMapSelCanv->Show();
+
+
+  std::unique_ptr<TCanvas> digMapLowCan;
+  digMapLowCan.reset(new TCanvas(Form("Charge below 4 %i",fname), Form("Charge Below 4 %i",fname), 1200, 1200));
+  digMapLowCan->Divide(3,3);
+  //digMapSelCanv->cd(3);
+  for (int iCh = 0; iCh < 7; iCh++) {
+    const auto& pos = posArr[iCh];
+    // ========== Digit Charge =========================
+    auto pad3 = static_cast<TPad*>(digMapLowCan->cd(pos));
+   
+    pad3->SetBottomMargin(.0025+pad3->GetBottomMargin());
+    pad3->SetLeftMargin(.065+pad3->GetLeftMargin());
+    mapCharge4[iCh]->SetLabelOffset(mapCharge4[iCh]->GetLabelOffset("y")+0.0015, "y");
+    mapCharge4[iCh]->SetTitleOffset(1.3,"y");
+    pad3->SetRightMargin(-.0025+pad3->GetRightMargin());
+    mapCharge4[iCh]->SetMarkerStyle(3);
+    mapCharge4[iCh]->Draw("Colz");
+    mapCharge4[iCh]->SetStats("e");
+  }
+
+  digMapLowCan->Show();
+  digMapLowCan->SaveAs(Form("Digit Map of Low Charge%i.png",fname));
 
   std::unique_ptr<TCanvas> t;
   t.reset(new TCanvas(Form("Digits SmallRange%i",fname), Form("Digits SmallRange %i",fname), 1200, 1200));
@@ -659,7 +719,6 @@ void readClusters(int nEvents)
     digCharges[iCh]->Draw();
   }  
 
-
   for (int iCh = 0; iCh < 7; iCh++) {
     const auto& pos = posArr[iCh];
 
@@ -678,7 +737,7 @@ void readClusters(int nEvents)
     digCharge[iCh]->Draw();
 
    for(int charge = 0; charge <= 4; charge++){
-      cout << " Ch, Charge, num " << iCh << " " << charge << " " << chargeBelow4[iCh][charge] << endl; 
+      //cout << " Ch, Charge, num " << iCh << " " << charge << " " << chargeBelow4[iCh][charge] << endl; 
    }
   }
 
@@ -697,7 +756,7 @@ void readClusters(int nEvents)
   canvas[4]->SaveAs(Form("DigitsPerEvent_%i_.png",fname));
 
   t->SaveAs(Form("Digit_Charge_SmallRange%i_.png",fname));
-
+  digMapLowCan->SaveAs(Form("Digits below 4 %i_.png",fname));
   canvas[0]->Show();
   canvas[1]->Show();
   t->Show();
@@ -707,23 +766,6 @@ void readClusters(int nEvents)
 
 
   sleep_for(5000ms);
-
-  for (int iCh = 0; iCh < 7; iCh++) {
-    const auto& pos = posArr[iCh];
-
-    // ========== Digit Charge =========================
-    auto pad3 = static_cast<TPad*>(canvas[5]->cd(pos));
-    pad3->SetBottomMargin(.0015+pad3->GetBottomMargin());
-    pad3->SetRightMargin(-.0025+pad3->GetRightMargin());
-    digMapSel[iCh]->SetLabelOffset(digMapSel[iCh]->GetLabelOffset("y")+0.0015, "y");
-    digMapSel[iCh]->SetTitleOffset(1.3,"y");
-    digMapSel[iCh]->SetMarkerStyle(3);
-    digMapSel[iCh]->Draw("Colz");
-
-    digMapSel[iCh]->SetStats(kFALSE);
-    digMapSel[iCh]->Draw();
-  }
-  canvas[5]->Show();
 
   bool userInput = false;
   while(!userInput){
@@ -759,39 +801,18 @@ void readClusters(int nEvents)
   }
 }
 
-
-
-void strToFloatsSplit(std::string s, std::string delimiter, float *res,
-                      int maxElem) {
-  int index = 0;
-  size_t pos_start = 0;
-  size_t pos_end;
-  size_t delim_len = delimiter.length();
-  std::string token;
-  while ((pos_end = s.find(delimiter, pos_start)) != std::string::npos) {
-    token = s.substr(pos_start, pos_end - pos_start);
-    pos_start = pos_end + delim_len;
-    res[index++] = std::stof(token);
-    if (index == maxElem) {
-      return;
-    }
-  }
-  res[index++] = (std::stof(s.substr(pos_start)));
-  return;
-}
-
-vector<string> dig2Clus(const std::string &fileName, vector<Cluster>& clusters, vector<Trigger>& clusterTriggers, vector<Digit>& digits, double& largestDiff, double& largestNegDiff) {
+vector<string> dig2Clus(const std::string &fileName, vector<Cluster>& clusters, vector<Trigger>& clusterTriggers, vector<Digit>& digits)
+{
   long mDigitsReceived, mClustersReceived, mTriggersReceived = 0;
   uint32_t firstTrigger, lastTrigger = 0;
   
   mRec.reset(new o2::hmpid::Clusterer()); // ef: changed to smart-pointer
 
-  // mExTimer.start();
+
   initFileIn(fileName);
 
   std::cout << "[HMPID DClusterization - run() ] Enter ...";
 
-  
   clusters.clear();
   clusterTriggers.clear();
   cout << "[HMPID DClusterization - run() ] Entries  = " << mTree->GetEntries() << endl; 
@@ -805,15 +826,6 @@ vector<string> dig2Clus(const std::string &fileName, vector<Cluster>& clusters, 
     assert(entry < mTree->GetEntries());
     mTree->GetEntry(entry);
         
-    Trigger trigFirst = mTriggersFromFilePtr->at(0);
-    Trigger trigLast = mTriggersFromFilePtr->back();   
-
-    const auto& tDif = (trigLast.getIr()).differenceInBCNS(trigFirst.getIr());
-
-    durSec = static_cast<double>((tDif)/1000000000.0);
-    durMin = static_cast<double>((durSec)/60.0);
-
-
     // isClustersAlready();
     
     for (const auto &trig : *mTriggersFromFilePtr) {
@@ -826,10 +838,7 @@ vector<string> dig2Clus(const std::string &fileName, vector<Cluster>& clusters, 
         clusterTriggers.emplace_back(trig.getIr(), clStart,
                                      clusters.size() - clStart);
       }
-    }
-    
-    
-    
+    }           
 
     cout << " Received " << mTriggersFromFilePtr->size() << " triggers with " << mDigitsFromFilePtr->size() << " digits -> clusters = " << clusters.size();
 
@@ -842,6 +851,16 @@ vector<string> dig2Clus(const std::string &fileName, vector<Cluster>& clusters, 
     mTriggersReceived = mTriggersFromFilePtr->size();
   }
 
+  // sort triggers by time
+  sortTriggers(*mTriggersFromFilePtr);
+
+  Trigger trigFirst = mTriggersFromFilePtr->at(0);
+  Trigger trigLast = mTriggersFromFilePtr->back();   
+
+  const auto& tDif = (trigLast.getIr()).differenceInBCNS(trigFirst.getIr());
+
+  durSec = static_cast<double>((tDif)/1000000000.0);
+  durMin = static_cast<double>((durSec)/60.0);
 
   const int numTriggers = static_cast<int>(mTriggersReceived);
   const int numDigits = static_cast<int>(mDigitsReceived);
@@ -859,7 +878,6 @@ vector<string> dig2Clus(const std::string &fileName, vector<Cluster>& clusters, 
   const auto& trigInfo = Form("Triggers %i, Frequency [Hz]= %.2f " , numTriggers, triggerFrequency); 
   const auto& digClusInfo = Form("Digits %i Clusters %i",
               numDigits, numClusters);
-
   
   int trigNum = 0;
   Trigger trigPrev;
@@ -879,7 +897,6 @@ vector<string> dig2Clus(const std::string &fileName, vector<Cluster>& clusters, 
   const auto& nsFirst = InteractionRecord::bc2ns(bcFirst, orbitFirst);
   const auto& nsLast = InteractionRecord::bc2ns(bcLast, orbitLast);
 
-
   const auto prevTimeNsTrig = nsFirst;
   int bcPrev; unsigned int orbitPrev;
 
@@ -892,39 +909,18 @@ vector<string> dig2Clus(const std::string &fileName, vector<Cluster>& clusters, 
     const int lastTrig = trig.getLastEntry();
 
     auto tDelta = (trig.getIr()).differenceInBCNS(trigPrev.getIr());
-
    
     const auto& orbit = trig.getOrbit();
     const auto& bc = trig.getBc();
-    
     const auto timeTrigger = InteractionRecord::bc2ns(bc, orbit);
     
-
-
     triggerInfoVec.emplace_back(timeTrigger, trigNum);
     trigPrev = trig;
     if(trigNum > 0){
       tDelta = InteractionRecord::bc2ns(bc, orbit) - InteractionRecord::bc2ns(bcPrev, orbitPrev);
 
-
-      if(tDelta>largestDiff){
-	largestDiff = tDelta;
-      }
-
-      if(tDelta<largestNegDiff){
-	largestNegDiff = tDelta;
-      }
-
-      if(trigNum%100==0)
-	cout << " Filled " << trigNum << " TimeDiff " << tDelta << " Time Ns " << (trig.getIr()).bc2ns() << " Bc " << bc << " Orbit " << orbit << endl; 
-      
       // just to check theyre equal:
       //cout << "diff trig ir "<< (trig.getIr()).bc2ns() - timeTrigger << endl;
-
-      /*if(tDif < -1000000 || tDif > 1000000){ 
-        //trigTime->SetPoint(trigNum, trigNum, 0.0f);
-      } else {trigTime->SetPoint(trigNum, trigNum, tDif);}*/
-      //cout << "Filled " << trigNum << " Time " << tDif;
     }
     trigNum++;
     bcPrev = bc; orbitPrev = orbit;
@@ -972,44 +968,6 @@ void initFileIn(const std::string &filename) {
 }
 
 
-
-
-
-
-
-
-
-void changeFont()
-{
-
-  /*
-  std::unique_ptr<TStyle> mStyle; 
-  mStyle.reset(new TStyle("canvasStyle", "Canvas Root Styles"));
-  */ 
-
-  gStyle->SetStatX(0.85);
-  gStyle->SetStatY(0.9);
-  gStyle->SetStatW(0.3);
-  gStyle->SetStatH(0.25);
-  gStyle->SetStatFontSize(0.065);
-  gStyle->SetLegendTextSize(0.08);//
-
-  gStyle->SetTitleSize(.055, "xzy");
-  gStyle->SetTitleOffset(.925, "xz");//.95
-  gStyle->SetTitleOffset(1, "y");//1.1
-  gStyle->SetTitleFontSize(.05);
-  //gStyle->SetTitleFont(16, "xz");
-  
-  gStyle->SetLabelOffset(0.0065, "y");
-  gStyle->SetLabelFont(22, "xyz");
-  gStyle->SetLabelSize(.055, "xyz"); //.0525 // verdi av akser
-
-
-  //mStyle->SetStyle("canvasStyle");
-}
-
-
-
 void setPadChannel(bool (&padDigOff)[7][160][144], int chamber, int xLow, int xHigh, int yLow, int yHigh)
 {
   
@@ -1037,8 +995,97 @@ void setPadChannel(bool (&padDigOff)[7][160][144], int chamber, int xLow, int xH
 }
 
 
+void sortTriggers(vector<Trigger>& sortedTriggers)
+{
+  cout << "Sorting triggers length =  " << sortedTriggers.size() << endl;
+
+  std::sort(sortedTriggers.begin(),  sortedTriggers.end(), [](const auto& a, const auto& b)
+  {
+    return (a.getIr()).bc2ns() < (b.getIr()).bc2ns();
+  });
+
+  cout << "Iterating through Sorted triggers " << endl;  
+
+  int trigNum = 0;
+  Trigger trigPrev;
+   
+  const auto firstTrig = sortedTriggers[0];
+  const auto lastTrig = sortedTriggers.back();
+  const auto& tDifTotal = (lastTrig.getIr()).differenceInBCNS(firstTrig.getIr());
+  
+  cout << "Diff Between first and last trigger " << tDifTotal << endl;  
+  cout << " Avg Frequency = " << sortedTriggers.size()/(tDifTotal*pow(10,9)) << endl;
+
+  for(const auto& trig : sortedTriggers){
+
+    const auto& tS = (trig.getIr()).bc2ns();
+    const auto& tE = (trigPrev.getIr()).bc2ns();
+
+    const auto& tDif2 = tE-tS;
+    const auto& tDif = (trig.getIr()).differenceInBCNS(trigPrev.getIr());
+    trigNum++;
+    //cout << "  tDif " << tDif << endl;
+    //cout << "  tDif2 " << tDif2 << endl;
+
+    if(trigNum > 0){
+      trigSort->Fill(tDif);
+      trigSort2->Fill(tDif);
+
+      if(tDif>largestDiff){
+        largestDiff = tDif;
+      }
+      if(tDif<largestNegDiff){
+        largestNegDiff = tDif;
+      }
+    }
+    trigPrev = trig;
+  }
+
+  cout << "Triggers Sorted" << endl;  
+}
 
 
+void strToFloatsSplit(std::string s, std::string delimiter, float *res,
+                      int maxElem) {
+  int index = 0;
+  size_t pos_start = 0;
+  size_t pos_end;
+  size_t delim_len = delimiter.length();
+  std::string token;
+  while ((pos_end = s.find(delimiter, pos_start)) != std::string::npos) {
+    token = s.substr(pos_start, pos_end - pos_start);
+    pos_start = pos_end + delim_len;
+    res[index++] = std::stof(token);
+    if (index == maxElem) {
+      return;
+    }
+  }
+  res[index++] = (std::stof(s.substr(pos_start)));
+  return;
+}
 
+
+void changeFont()
+{
+  /*
+  std::unique_ptr<TStyle> mStyle; 
+  mStyle.reset(new TStyle("canvasStyle", "Canvas Root Styles"));
+  */ 
+  gStyle->SetStatX(0.85);
+  gStyle->SetStatY(0.9);
+  gStyle->SetStatW(0.3);
+  gStyle->SetStatH(0.25);
+  gStyle->SetStatFontSize(0.065);
+  gStyle->SetLegendTextSize(0.08);//
+  gStyle->SetTitleSize(.055, "xzy");
+  gStyle->SetTitleOffset(.925, "xz");//.95
+  gStyle->SetTitleOffset(1, "y");//1.1
+  gStyle->SetTitleFontSize(.05);
+  //gStyle->SetTitleFont(16, "xz");
+  gStyle->SetLabelOffset(0.0065, "y");
+  gStyle->SetLabelFont(22, "xyz");
+  gStyle->SetLabelSize(.055, "xyz"); //.0525 // verdi av akser
+  //mStyle->SetStyle("canvasStyle");
+}
 
 

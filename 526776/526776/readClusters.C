@@ -126,7 +126,7 @@ void readClusters(int nEvents)
   std::array<std::unique_ptr<TGraph>, 7> trigGraph;
   
   std::array<std::unique_ptr<TH1F>, 7> digCharge, hMipCharge, digPerEvent, digCharges;
-  std::array<std::unique_ptr<TH2F>, 7> digMap, digMapAvg, digMapSel, test;
+  std::array<std::unique_ptr<TH2F>, 7> digMap, digMapAvg, digMapSel, test, mapCharge4;
 
 
   std::array<std::unique_ptr<TH1F>, 3> triggerTimeFreqHist;
@@ -222,12 +222,18 @@ void readClusters(int nEvents)
 
 
 
+    const char* mapCharge4Str = Form("Chamber %i Digits with Charge < 4 ", i);
+    mapCharge4[i].reset(new TH2F(mapCharge4Str, mapCharge4Str, 160, 0, 159, 144, 0, 143));
+    //digMap[i].reset(new TH2F(canDigMap, canDigMap, 160*0.8, 0, 159*0.8, 144*0.8, 0, 160*0.8));
+    mapCharge4[i]->SetXTitle("x [cm]");
+    mapCharge4[i]->SetYTitle("y [cm]");
+    
+
     const char* canDigSel = Form("Selected Pads %i", i);
     digMapSel[i].reset(new TH2F(canDigSel, canDigSel, 160, 0, 159, 144, 0, 143));
     //digMap[i].reset(new TH2F(canDigMap, canDigMap, 160*0.8, 0, 159*0.8, 144*0.8, 0, 160*0.8));
     digMapSel[i]->SetXTitle("x [cm]");
     digMapSel[i]->SetYTitle("y [cm]");
-    
 
     const char* canDigAvg = Form("Avg Charge Per Pad %i", i);
     digMapAvg[i].reset(new TH2F(canDigAvg, canDigAvg, 160, 0, 159, 144, 0, 143));
@@ -397,6 +403,7 @@ void readClusters(int nEvents)
         //cout << "Total " << cntCh[module] << endl;
 	cntCh[module]++;
 	avgDig[module]++;
+
 	
       }
       //for(auto c : cntCh){cout << "  " << c << endl;}
@@ -423,7 +430,7 @@ void readClusters(int nEvents)
         digCharge[module]->Fill(charge);
         if(charge < 4){
           chargeBelow4[module][static_cast<int>(charge)] += 1; 
-
+          mapCharge4[module]->Fill(padChX, padChY, charge);
         }
         if(charge <= 10){
           digCharges[module]->Fill(charge);
@@ -662,8 +669,28 @@ void readClusters(int nEvents)
     digMapSel[iCh]->Draw("Colz");
     digMapSel[iCh]->SetStats(kFALSE);
   }
-
   digMapSelCanv->Show();
+
+
+  std::unique_ptr<TCanvas> digMapLowCan;
+  digMapLowCan.reset(new TCanvas(Form("Charge below 4 %i",fname), Form("Charge Below 4 %i",fname), 1200, 1200));
+  digMapLowCan->Divide(3,3);
+  //digMapSelCanv->cd(3);
+  for (int iCh = 0; iCh < 7; iCh++) {
+    const auto& pos = posArr[iCh];
+    // ========== Digit Charge =========================
+    auto pad3 = static_cast<TPad*>(digMapLowCan->cd(pos));
+   
+    pad3->SetBottomMargin(.0025+pad3->GetBottomMargin());
+    pad3->SetLeftMargin(.065+pad3->GetLeftMargin());
+    mapCharge4[iCh]->SetLabelOffset(mapCharge4[iCh]->GetLabelOffset("y")+0.0015, "y");
+    mapCharge4[iCh]->SetTitleOffset(1.3,"y");
+    pad3->SetRightMargin(-.0025+pad3->GetRightMargin());
+    mapCharge4[iCh]->SetMarkerStyle(3);
+    mapCharge4[iCh]->Draw("Colz");
+    mapCharge4[iCh]->SetStats("e");
+  }
+  digMapLowCan->Show();
 
   std::unique_ptr<TCanvas> t;
   t.reset(new TCanvas(Form("Digits SmallRange%i",fname), Form("Digits SmallRange %i",fname), 1200, 1200));
@@ -702,7 +729,7 @@ void readClusters(int nEvents)
     digCharge[iCh]->Draw();
 
    for(int charge = 0; charge <= 4; charge++){
-      cout << " Ch, Charge, num " << iCh << " " << charge << " " << chargeBelow4[iCh][charge] << endl; 
+      //cout << " Ch, Charge, num " << iCh << " " << charge << " " << chargeBelow4[iCh][charge] << endl; 
    }
   }
 

@@ -365,14 +365,14 @@ void readClusters(int nEvents)
 
       const auto& tDif = (trig.getIr()).differenceInBCNS(trigPrev.getIr());
 
-      if(trigNum > 0 && time > pow(10,13)){    
+      if(trigNum > 0 && time > pow(10,6)){    
         triggerTimeFreqHist[2]->Fill(tDif);
         triggerTimeFreqHist[1]->Fill(tDif);
         triggerTimeFreqHist[0]->Fill(tDif);
         trigTime->SetPoint(trigNum-1, static_cast<double>(time), tDif);
       }
 
-      if(time < pow(10, 13)){
+      if(time < pow(10, 6)){
         cout << "Time "<< time << " Trigger Number " << trigNum << " Tdiff " << tDif << endl ;
       }
 

@@ -1,6 +1,12 @@
 {
     "internal-dpl-clock": "",
-    "tf-reader": "",
+    "tf-reader": {
+        "orbit-offset-enumeration": "0",
+        "orbit-multiplier-enumeration": "0",
+        "start-value-enumeration": "0",
+        "end-value-enumeration": "-1",
+        "step-value-enumeration": "1"
+    },
     "HMP-RawStreamDecoder": {
         "get-results-statistics": "true",
         "result-file": "\/tmp\/hmpRawDecodeResults",
@@ -8,6 +14,6 @@
     },
     "internal-dpl-injected-dummy-sink": "",
     "HMP-DigitsToRoot": {
-        "out-file": "hmpDig70.root"
+        "out-file": "hmp526776_Dig_25.root"
     }
 }

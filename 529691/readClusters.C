@@ -543,7 +543,7 @@ void readClusters(int nEvents)
   */
 
   std::unique_ptr<TCanvas> temp2;
-  temp2.reset(new TCanvas(Form("temp2%i",fname), Form("temp2%i",fname),1200, 2000));
+  temp2.reset(new TCanvas(Form("Trigger Frequency%i",fname), Form("Trigger Frequency%i",fname),1200, 2000));
   temp2->Divide(2,2);
   temp2->cd(2);
   tpvs[0]->Draw();
@@ -563,7 +563,7 @@ void readClusters(int nEvents)
   trigSort->Draw();
   auto pad7 = static_cast<TPad*>(temp2->cd(4));
   trigSort2->Draw();
-  temp2->SaveAs(Form("Trigger Frequency Hist and Graph %i",fname));
+  temp2->SaveAs(Form("Trigger Frequency Hist and Graph %i.png",fname));
 
 
   for (int iCh = 0; iCh < 7; iCh++) {
@@ -834,7 +834,7 @@ vector<string> dig2Clus(const std::string &fileName, vector<Cluster>& clusters, 
             mDigitsFromFilePtr->data() + trig.getFirstEntry(),
             size_t(trig.getNumberOfObjects())};
         const size_t clStart = clusters.size();
-        //mRec->Dig2Clu(trigDigits, clusters, mSigmaCut, true); //ef:uncomment
+        mRec->Dig2Clu(trigDigits, clusters, mSigmaCut, true); //ef:uncomment
         clusterTriggers.emplace_back(trig.getIr(), clStart,
                                      clusters.size() - clStart);
       }

@@ -543,17 +543,17 @@ void readClusters(int nEvents)
   */
 
   std::unique_ptr<TCanvas> temp2;
-  temp2.reset(new TCanvas(Form("temp2%i",fname), Form("temp2%i",fname),1200, 2000));
+  temp2.reset(new TCanvas(Form("Trigger Frequency %i",fname), Form("Trigger Frequency %i",fname),1200, 2000));
   temp2->Divide(2,2);
   temp2->cd(2);
   tpvs[0]->Draw();
   
   auto pad5 = static_cast<TPad*>(temp2->cd(1));
 
-  for(int ent = 0; ent < 100; ent++){
-    cout<< ent << "Grraph entry X " << trigTime->GetPointX(ent) << endl;
-    cout<< ent << "Grraph entry Y " << trigTime->GetPointY(ent) << endl;
-  }
+  /*for(int ent = 0; ent < 100; ent++){
+    cout<< ent << "Graph entry X " << trigTime->GetPointX(ent) << endl;
+    cout<< ent << "Graph entry Y " << trigTime->GetPointY(ent) << endl;
+  }*/
 
   //trigTime->SetMinimum(pow(10,12));
   //trigTime->Draw("AC*");
@@ -563,7 +563,7 @@ void readClusters(int nEvents)
   trigSort->Draw();
   auto pad7 = static_cast<TPad*>(temp2->cd(4));
   trigSort2->Draw();
-  temp2->SaveAs(Form("Trigger Frequency Hist and Graph %i",fname));
+  temp2->SaveAs(Form("Trigger Frequency Hist and Graph %i.png",fname));
 
 
   for (int iCh = 0; iCh < 7; iCh++) {

@@ -64,7 +64,7 @@ void changeFont();
 
 
 TH1F* trigSort = new TH1F("trigSort", "trigSort", 50, 0., 1000000000.);
-TH1F* trigSort2 = new TH1F("trigSort2", "trigSort2", 50, 0., 1000000.);
+TH1F* trigSort2 = new TH1F("trigSort2", "trigSort2", 50, 0., 20000.);
 
 void sortTriggers(vector<Trigger>& sortedTriggers);
 //void sortTriggers(vector<Trigger>& sortedTriggers, TGraph& trigTimeSortStd);
@@ -210,7 +210,7 @@ void readClusters(int nEvents)
     hMipCharge[i]->SetYTitle("Entries/40 ADC");
     hMipCharge[i]->SetStats(kTRUE);
 
-    const char* canStringSize = Form("Digit Charge %i", i);
+    const char* canStringSize = Form("Logaritmic Digit Charge %i", i);
     digCharge[i].reset(new TH1F(canStringSize, canStringSize, 50, 0., 400.));
     digCharge[i]->SetXTitle("Charge (ADC channel)");
     digCharge[i]->SetYTitle("Entries/40 ADC");
@@ -282,24 +282,23 @@ void readClusters(int nEvents)
 
 
   for(int i = 0; i<3; i++){
-    const char* trigTimeStr = Form("Trigger Time Freq%i",i);
+
     if(i==0){
-     triggerTimeFreqHist[i].reset(new TH1F(trigTimeStr, trigTimeStr, 50, largestNegDiff*1.5, largestDiff*1.5));
+     const char* trigTimeStr = Form("Trigger Time Freq%i",i);
+     triggerTimeFreqHist[i].reset(new TH1F(trigTimeStr, trigTimeStr, 50, 0, largestDiff));
     } else if (i==1) {
-     triggerTimeFreqHist[i].reset(new TH1F(trigTimeStr, trigTimeStr, 10, 0, 500000));
+     const char* trigTimeStr = Form("Event Delta-Time [nS]");
+     triggerTimeFreqHist[i].reset(new TH1F(trigTimeStr, trigTimeStr, 10, 0, largestDiff));
+     triggerTimeFreqHist[i]->SetXTitle("Event Delta-time [nS]");
     } else if (i==2) {
-     triggerTimeFreqHist[i].reset(new TH1F(trigTimeStr, trigTimeStr, 10, 0, 1000000));
+     const char* trigTimeStr = Form("Event Frequency");
+     triggerTimeFreqHist[i].reset(new TH1F(trigTimeStr, trigTimeStr, 50, 0, 30000));
+     triggerTimeFreqHist[i]->SetXTitle("Event Frequncy [Hz]");
     } 
-
-
-    triggerTimeFreqHist[i]->SetXTitle("Trigger Time");
-    triggerTimeFreqHist[i]->SetYTitle("Frequency");
+    triggerTimeFreqHist[i]->SetYTitle("Number Of Entries");
   }
-
-  triggerTimeFreqHist[1]->SetBins(50,0,100000);
-  triggerTimeFreqHist[2]->SetBins(50,0,1000000);
  
-  const char* trigEvtStr = Form("Trigger Frequency per Trigger Time; Time [nS]; Delta Time");
+  const char* trigEvtStr = Form("Graph of Event Delta-time; Time Event Occured [nS]; Event Delta Time [nS]");
   trigTime.reset(new TGraph);
   trigTime->SetTitle(trigEvtStr);  
   
@@ -365,8 +364,9 @@ void readClusters(int nEvents)
 
       const auto& tDif = (trig.getIr()).differenceInBCNS(trigPrev.getIr());
 
-      if(trigNum > 0 && time > pow(10,6)){    
-        triggerTimeFreqHist[2]->Fill(tDif);
+      if(trigNum > 0 && time > pow(10,6)){
+        const auto& freq = (pow(10, 9))/tDif;         
+        triggerTimeFreqHist[2]->Fill(freq);
         triggerTimeFreqHist[1]->Fill(tDif);
         triggerTimeFreqHist[0]->Fill(tDif);
         trigTime->SetPoint(trigNum-1, static_cast<double>(time), tDif);
@@ -462,8 +462,6 @@ void readClusters(int nEvents)
 
   vector<const char*> tpvTexts{"MIP Clusters Charge", "Digits-Charge, logx logy", "Digits-Map", "Digits-Map Avg", "Digits Per Event", "Map of Evaluated Areas", "Digits Charge Small Scale"};
 
-  Printf("Marker1 = %i", 999999999999);
-
   int j = 0;
   for(auto& tpv: tpvs){
     tpv.reset(new TPaveText(0.05, .05, .9, .9));
@@ -474,8 +472,6 @@ void readClusters(int nEvents)
   tpvs[0]->AddText("MIP Clusters Charge");
   tpvs[1]->AddText("Digits-Charge");
   tpvs[2]->AddText("Digits-Map"); */ 
-
-  Printf("Marker2 = %i", 999999999999);
 
   for(auto& tpv: tpvs){
     tpv->AddText(f1);
@@ -495,14 +491,12 @@ void readClusters(int nEvents)
   changeFont();    
 
   gStyle->SetStatX(0.95);
-  gStyle->SetStatY(0.9);
+  gStyle->SetStatY(0.925);
   gStyle->SetStatW(0.3);
   gStyle->SetStatH(0.3); 
     
-
-  Printf("Marker3 = %i", 999999999999);
   std::unique_ptr<TCanvas> temp1;
-  temp1.reset(new TCanvas(Form("Trigger Time %i",fname), Form("Trigger Time %i",fname),1200, 2000));
+  temp1.reset(new TCanvas(Form("Event Information %i",fname), Form("Event Information %i",fname),1200, 2000));
   temp1->Divide(2,2);
     temp1->cd(2);
     tpvs[0]->Draw();
@@ -513,30 +507,36 @@ void readClusters(int nEvents)
     TPad* pad2;
     if(i < 1){ 
       pad2 = static_cast<TPad*>(temp1->cd(i+1));
+      pad2->SetLeftMargin(.01+pad2->GetLeftMargin());
+      //trigTime->SetTitleOffset(trigTime->GetTitleOffset("y")*0.8, "y");
       trigTime->Draw("A*");
     } else {
       pad2 = static_cast<TPad*>(temp1->cd(i+2));
-      pad2->SetLeftMargin(.0375+pad2->GetLeftMargin());
+      pad2->SetLeftMargin(.0275+pad2->GetLeftMargin());
       pad2->SetBottomMargin(.0375+pad2->GetBottomMargin());
       pad2->SetRightMargin(.0375+pad2->GetRightMargin());
-      triggerTimeFreqHist[i]->SetTitleOffset(triggerTimeFreqHist[i]->GetTitleOffset("y")*1.5, "xy");
+      triggerTimeFreqHist[i]->SetTitleOffset(triggerTimeFreqHist[i]->GetTitleOffset("y")*1.2, "xy");
        
-      triggerTimeFreqHist[i]->SetTitleSize(triggerTimeFreqHist[i]->GetTitleSize("x")*0.75, "xy");
-      triggerTimeFreqHist[i]->SetLabelSize(triggerTimeFreqHist[i]->GetLabelSize("x")*0.625, "x");
-      triggerTimeFreqHist[i]->SetLabelSize(triggerTimeFreqHist[i]->GetLabelSize("y")*0.75, "y");
+      triggerTimeFreqHist[i]->SetTitleSize(triggerTimeFreqHist[i]->GetTitleSize("x")*0.95, "xy");
+      triggerTimeFreqHist[i]->SetLabelSize(triggerTimeFreqHist[i]->GetLabelSize("x")*0.925, "x");
+      triggerTimeFreqHist[i]->SetLabelSize(triggerTimeFreqHist[i]->GetLabelSize("y")*0.925, "y");
       triggerTimeFreqHist[i]->Draw();
     }
 
   }
 
-  gStyle->SetOptStat("eimr");
+  gStyle->SetOptStat("eim");
   gStyle->SetStatX(0.95);
   temp1->Show();
-  temp1->SaveAs(Form("TriggerFreq_%i_.png",fname));
+  temp1->SaveAs(Form("Event Information_%i_.png",fname));
 
 
-  Printf("Marker4 = %i", 999999999999);
 
+  /*
+   **********************************
+   Sorted Triggers   
+   **********************************
+  */
 
   std::unique_ptr<TCanvas> temp2;
   temp2.reset(new TCanvas(Form("Trigger Frequency%i",fname), Form("Trigger Frequency%i",fname),1200, 2000));
@@ -546,7 +546,6 @@ void readClusters(int nEvents)
   
   auto pad5 = static_cast<TPad*>(temp2->cd(1));
 
-
   //trigTime->SetMinimum(pow(10,12));
   //trigTime->Draw("AC*");
   trigTime->Draw("A*");
@@ -555,7 +554,7 @@ void readClusters(int nEvents)
   trigSort->Draw();
   auto pad7 = static_cast<TPad*>(temp2->cd(4));
   trigSort2->Draw();
-  temp2->SaveAs(Form("Trigger Frequency Hist and Graph%i.png",fname));
+  temp2->SaveAs(Form("Trigger Frequency Hist and Graph %i.png",fname));
 
 
   for (int iCh = 0; iCh < 7; iCh++) {
@@ -587,8 +586,7 @@ void readClusters(int nEvents)
   gStyle->SetOptStat("e");
   gStyle->SetStatW(0.3);
   gStyle->SetStatH(0.6); 
-    
-  Printf("Marker5 = %i", 999999999999);
+
   // avg digits charge
   for (int iCh = 0; iCh < 7; iCh++) {
     const auto& pos = posArr[iCh];
@@ -622,7 +620,7 @@ void readClusters(int nEvents)
     //hMipCharge[iCh]->SetTitle(Form("Constant %03.1f \n MPV %03.1f Sigma %03.1f", Constant, MPV, Sigma));
     hMipCharge[iCh]->Draw();
   }
-  Printf("Marker3 = %i", 999999999999);
+
   gStyle->SetStatX(0.95);
   //drawMipCharge(hMipCharge)
 
@@ -685,9 +683,9 @@ void readClusters(int nEvents)
     mapCharge4[iCh]->SetLabelOffset(mapCharge4[iCh]->GetLabelOffset("y")+0.0015, "y");
     mapCharge4[iCh]->SetTitleOffset(1.3,"y");
     pad3->SetRightMargin(-.0025+pad3->GetRightMargin());
+    mapCharge4[iCh]->SetStats(kFALSE);
     mapCharge4[iCh]->SetMarkerStyle(3);
     mapCharge4[iCh]->Draw("Colz");
-    mapCharge4[iCh]->SetStats("e");
   }
 
   digMapLowCan->Show();
@@ -826,7 +824,7 @@ vector<string> dig2Clus(const std::string &fileName, vector<Cluster>& clusters, 
             mDigitsFromFilePtr->data() + trig.getFirstEntry(),
             size_t(trig.getNumberOfObjects())};
         const size_t clStart = clusters.size();
-        mRec->Dig2Clu(trigDigits, clusters, mSigmaCut, true); //ef:uncomment
+        //mRec->Dig2Clu(trigDigits, clusters, mSigmaCut, true); //ef:uncomment
         clusterTriggers.emplace_back(trig.getIr(), clStart,
                                      clusters.size() - clStart);
       }
@@ -865,9 +863,9 @@ vector<string> dig2Clus(const std::string &fileName, vector<Cluster>& clusters, 
   cout << "digClusRatio " << digClusRatio << endl;
   cout << "digTrigRatio " << digTrigRatio << endl;
 
-  const auto& ratioInfo = Form("Dig/Clus = %.2f Dig/Triggers= %.0f", digClusRatio, digTrigRatio); 
+  const auto& ratioInfo = Form("Dig/Clus = %.2f Dig/Events= %.0f", digClusRatio, digTrigRatio); 
 
-  const auto& trigInfo = Form("Triggers %i, Frequency [Hz]= %.2f " , numTriggers, triggerFrequency); 
+  const auto& trigInfo = Form("Events %i, Frequency [Hz]= %.2f " , numTriggers, triggerFrequency); 
   const auto& digClusInfo = Form("Digits %i Clusters %i",
               numDigits, numClusters);
   
@@ -921,7 +919,7 @@ vector<string> dig2Clus(const std::string &fileName, vector<Cluster>& clusters, 
   cout << " largest difference " << largestDiff << endl;
   cout << " largest negative   " << largestNegDiff << endl;
   
-  const auto durInfo = Form("Duration of triggers = %.2f min", durMin);
+  const auto durInfo = Form("Duration of Events = %.2f min", durMin);
   return  {trigInfo, digClusInfo, ratioInfo, durInfo};
 }
 
@@ -1005,7 +1003,7 @@ void sortTriggers(vector<Trigger>& sortedTriggers)
   const auto lastTrig = sortedTriggers.back();
   const auto& tDifTotal = (lastTrig.getIr()).differenceInBCNS(firstTrig.getIr());
   
-  cout << "Diff Between first and last trigger " << tDifTotal << endl;  
+  cout << "Diff Between first and last Event " << tDifTotal << endl;  
   cout << " Avg Frequency = " << sortedTriggers.size()/(tDifTotal*pow(10,9)) << endl;
 
   for(const auto& trig : sortedTriggers){
@@ -1021,7 +1019,9 @@ void sortTriggers(vector<Trigger>& sortedTriggers)
 
     if(trigNum > 0){
       trigSort->Fill(tDif);
-      trigSort2->Fill(tDif);
+
+      const auto& freq = (pow(10, 9))/tDif;     
+      trigSort2->Fill(freq);
 
       if(tDif>largestDiff){
         largestDiff = tDif;
@@ -1064,7 +1064,7 @@ void changeFont()
   mStyle.reset(new TStyle("canvasStyle", "Canvas Root Styles"));
   */ 
   gStyle->SetStatX(0.85);
-  gStyle->SetStatY(0.9);
+  gStyle->SetStatY(0.925);
   gStyle->SetStatW(0.3);
   gStyle->SetStatH(0.25);
   gStyle->SetStatFontSize(0.065);

@@ -414,7 +414,7 @@ void readClusters(int nEvents)
       }
 
       digMap[module]->Fill(padChX, padChY, charge);
-      digMapAvg[module]->Fill(padChX, padChY, charge/numTriggers);
+      digMapAvg[module]->Fill(padChX, padChY, charge/50);
       //digMap[module]->Fill(padChX, padChY, padDigOff[module][padChX][padChY]);
       //padDigits[module][padChX][padChY] += dig.getQ();
     }
@@ -502,7 +502,7 @@ void readClusters(int nEvents)
 
   Printf("Marker3 = %i", 999999999999);
   std::unique_ptr<TCanvas> temp1;
-  temp1.reset(new TCanvas(Form("Trigger Time %i",fname), Form("temp1%i",fname),1200, 2000));
+  temp1.reset(new TCanvas(Form("Trigger Time %i",fname), Form("Trigger Time %i",fname),1200, 2000));
   temp1->Divide(2,2);
     temp1->cd(2);
     tpvs[0]->Draw();
@@ -536,24 +536,16 @@ void readClusters(int nEvents)
 
 
   Printf("Marker4 = %i", 999999999999);
-  /*
-   **********************************
-   Sorted Triggers   
-   **********************************
-  */
+
 
   std::unique_ptr<TCanvas> temp2;
-  temp2.reset(new TCanvas(Form("temp2%i",fname), Form("temp2%i",fname),1200, 2000));
+  temp2.reset(new TCanvas(Form("Trigger Frequency %i",fname), Form("Trigger Frequency %i",fname),1200, 2000));
   temp2->Divide(2,2);
   temp2->cd(2);
   tpvs[0]->Draw();
   
   auto pad5 = static_cast<TPad*>(temp2->cd(1));
 
-  for(int ent = 0; ent < 100; ent++){
-    cout<< ent << "Grraph entry X " << trigTime->GetPointX(ent) << endl;
-    cout<< ent << "Grraph entry Y " << trigTime->GetPointY(ent) << endl;
-  }
 
   //trigTime->SetMinimum(pow(10,12));
   //trigTime->Draw("AC*");
@@ -563,7 +555,7 @@ void readClusters(int nEvents)
   trigSort->Draw();
   auto pad7 = static_cast<TPad*>(temp2->cd(4));
   trigSort2->Draw();
-  temp2->SaveAs(Form("Trigger Frequency Hist and Graph %i",fname));
+  temp2->SaveAs(Form("Trigger Frequency Hist and Graph%i.png",fname));
 
 
   for (int iCh = 0; iCh < 7; iCh++) {
@@ -608,6 +600,7 @@ void readClusters(int nEvents)
     pad5->SetBottomMargin(.0015+pad5->GetBottomMargin());
     pad5->SetRightMargin(.125+pad5->GetRightMargin());
     digMapAvg[iCh]->SetTitle(Form("Chamber Avg %i Percentage of total = %02.0f", iCh, pTotalDigs));
+    digMapAvg[iCh]->SetMarkerStyle(3);
     digMapAvg[iCh]->SetStats(kFALSE);
     digMapAvg[iCh]->Draw("Colz");
   }
@@ -834,7 +827,7 @@ vector<string> dig2Clus(const std::string &fileName, vector<Cluster>& clusters, 
             mDigitsFromFilePtr->data() + trig.getFirstEntry(),
             size_t(trig.getNumberOfObjects())};
         const size_t clStart = clusters.size();
-        //mRec->Dig2Clu(trigDigits, clusters, mSigmaCut, true); //ef:uncomment
+        mRec->Dig2Clu(trigDigits, clusters, mSigmaCut, true); //ef:uncomment
         clusterTriggers.emplace_back(trig.getIr(), clStart,
                                      clusters.size() - clStart);
       }

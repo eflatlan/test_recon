@@ -608,6 +608,7 @@ void readClusters(int nEvents)
     pad5->SetBottomMargin(.0015+pad5->GetBottomMargin());
     pad5->SetRightMargin(.125+pad5->GetRightMargin());
     digMapAvg[iCh]->SetTitle(Form("Chamber Avg %i Percentage of total = %02.0f", iCh, pTotalDigs));
+    digMapAvg[iCh]->SetMarkerStyle(3);
     digMapAvg[iCh]->SetStats(kFALSE);
     digMapAvg[iCh]->Draw("Colz");
   }
@@ -834,7 +835,7 @@ vector<string> dig2Clus(const std::string &fileName, vector<Cluster>& clusters, 
             mDigitsFromFilePtr->data() + trig.getFirstEntry(),
             size_t(trig.getNumberOfObjects())};
         const size_t clStart = clusters.size();
-        //mRec->Dig2Clu(trigDigits, clusters, mSigmaCut, true); //ef:uncomment
+        mRec->Dig2Clu(trigDigits, clusters, mSigmaCut, true); //ef:uncomment
         clusterTriggers.emplace_back(trig.getIr(), clStart,
                                      clusters.size() - clStart);
       }

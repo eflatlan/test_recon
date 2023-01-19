@@ -12,8 +12,5 @@
         "result-file": "\/tmp\/hmpRawDecodeResults",
         "fast-decode": "true"
     },
-    "internal-dpl-injected-dummy-sink": "",
-    "HMP-DigitsToRoot": {
-        "out-file": "hmp529691_Dig_120.root"
-    }
+    "internal-dpl-injected-dummy-sink": ""
 }

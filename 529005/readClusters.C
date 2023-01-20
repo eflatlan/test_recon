@@ -1097,8 +1097,8 @@ void sortTriggers(vector<Trigger>& sortedTriggers)
         largestNegDiff = tDif;
       }
     }
-    trigNum++;
     trigPrev = trig;
+    trigNum++;
   }
 
   cout << "Triggers Sorted" << endl;  

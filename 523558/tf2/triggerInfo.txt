@@ -1,0 +1,146 @@
+ dig2clus /root/test_recon/523558/tf2/hmp.root
+ folderName 58/tf2
+******************************************************************************
+*Tree    :o2hmp     : HMPID Digits File Decoding                             *
+*Entries :        1 : Total =         4317581 bytes  File  Size =    1049142 *
+*        :          : Tree compression factor =   4.11                       *
+******************************************************************************
+branch: InteractionRecords        9831
+
+branch: HMPIDDigits            1037643
+
+[HMPID DClusterization - run() ] Enter ...[HMPID DClusterization - run() ] Entries  = 1
+ Received 1143 triggers with 715523 digits -> clusters = 0Sorting triggers length =  1143
+Iterating through Sorted triggers 
+Diff Between first and last Event 3.19842e+09
+ Avg Frequency = 3.57364e-16
+Triggers Sorted
+digClusRatio inf
+digTrigRatio 626.004
+First, Ns 2.83377e+13 BC 0 Orbit 318670567
+Last , Ns 2.83408e+13 BC 2785 Orbit 318706534
+ largest difference 2.2773e+08
+ largest negative   133337
+time : 189576
+time : 2.16299e+08
+time : 2.16312e+08
+time : 2.16329e+08
+time : 2.1635e+08
+time : 2.1636e+08
+time : 2.16374e+08
+time : 2.16383e+08
+time : 2.16401e+08
+time : 2.16403e+08
+time : 2.16462e+08
+time : 2.16463e+08
+time : 2.16479e+08
+time : 2.16533e+08
+time : 2.2773e+08
+firstTimes[timeLimit-2]156915
+ min min2 nax times First : 133337 133562 158313
+ min min2 nax times Last : 189576 2.16299e+08 2.2773e+08
+ avg times First : 3.04121e+09 Last : 0
+ fname 58/tf2
+Number of Bins 31984
+1 2.83377e+13 2 2.83408e+13
+digit size = 715523
+ Exceeded limit Trigger Number 1 Tdiff 2.2773e+08
+Count 0
+ Exceeded limit Trigger Number 1 Tdiff 2.2773e+08
+Count 0
+ Exceeded limit Trigger Number 1 Tdiff 2.2773e+08
+Count 0
+ Exceeded limit Trigger Number 82 Tdiff 2.16533e+08
+Count 1
+ Exceeded limit Trigger Number 82 Tdiff 2.16533e+08
+Count 1
+ Exceeded limit Trigger Number 82 Tdiff 2.16533e+08
+Count 1
+ Exceeded limit Trigger Number 163 Tdiff 2.16374e+08
+Count 2
+ Exceeded limit Trigger Number 163 Tdiff 2.16374e+08
+Count 2
+ Exceeded limit Trigger Number 163 Tdiff 2.16374e+08
+Count 2
+ Exceeded limit Trigger Number 245 Tdiff 2.16299e+08
+Count 3
+ Exceeded limit Trigger Number 245 Tdiff 2.16299e+08
+Count 3
+ Exceeded limit Trigger Number 245 Tdiff 2.16299e+08
+Count 3
+ Exceeded limit Trigger Number 326 Tdiff 2.16401e+08
+Count 4
+ Exceeded limit Trigger Number 326 Tdiff 2.16401e+08
+Count 4
+ Exceeded limit Trigger Number 326 Tdiff 2.16401e+08
+Count 4
+ Exceeded limit Trigger Number 408 Tdiff 2.16329e+08
+Count 5
+ Exceeded limit Trigger Number 408 Tdiff 2.16329e+08
+Count 5
+ Exceeded limit Trigger Number 408 Tdiff 2.16329e+08
+Count 5
+ Exceeded limit Trigger Number 490 Tdiff 2.16312e+08
+Count 6
+ Exceeded limit Trigger Number 490 Tdiff 2.16312e+08
+Count 6
+ Exceeded limit Trigger Number 490 Tdiff 2.16312e+08
+Count 6
+ Exceeded limit Trigger Number 572 Tdiff 2.16403e+08
+Count 7
+ Exceeded limit Trigger Number 572 Tdiff 2.16403e+08
+Count 7
+ Exceeded limit Trigger Number 572 Tdiff 2.16403e+08
+Count 7
+ Exceeded limit Trigger Number 654 Tdiff 2.16462e+08
+Count 8
+ Exceeded limit Trigger Number 654 Tdiff 2.16462e+08
+Count 8
+ Exceeded limit Trigger Number 654 Tdiff 2.16462e+08
+Count 8
+ Exceeded limit Trigger Number 735 Tdiff 2.16479e+08
+Count 9
+ Exceeded limit Trigger Number 735 Tdiff 2.16479e+08
+Count 9
+ Exceeded limit Trigger Number 735 Tdiff 2.16479e+08
+Count 9
+ Exceeded limit Trigger Number 816 Tdiff 2.16383e+08
+Count 10
+ Exceeded limit Trigger Number 816 Tdiff 2.16383e+08
+Count 10
+ Exceeded limit Trigger Number 816 Tdiff 2.16383e+08
+Count 10
+ Exceeded limit Trigger Number 898 Tdiff 2.1636e+08
+Count 11
+ Exceeded limit Trigger Number 898 Tdiff 2.1636e+08
+Count 11
+ Exceeded limit Trigger Number 898 Tdiff 2.1636e+08
+Count 11
+ Exceeded limit Trigger Number 979 Tdiff 2.16463e+08
+Count 12
+ Exceeded limit Trigger Number 979 Tdiff 2.16463e+08
+Count 12
+ Exceeded limit Trigger Number 979 Tdiff 2.16463e+08
+Count 12
+ Exceeded limit Trigger Number 1061 Tdiff 2.1635e+08
+Count 13
+ Exceeded limit Trigger Number 1061 Tdiff 2.1635e+08
+Count 13
+ Exceeded limit Trigger Number 1061 Tdiff 2.1635e+08
+Count 13
+clusters size = 0
+trigger size from clusters = 1143
+Info in <TCanvas::Print>: file Event Information_58_.png has been created
+Info in <TCanvas::Print>: file Trigger Frequency Hist and Graph 58.png has been created
+Warning in <Fit>: Fit data is empty 
+Warning in <Fit>: Fit data is empty 
+Warning in <Fit>: Fit data is empty 
+Warning in <Fit>: Fit data is empty 
+Warning in <Fit>: Fit data is empty 
+Warning in <Fit>: Fit data is empty 
+Warning in <Fit>: Fit data is empty 
+Info in <TCanvas::Print>: file Digit Map of Low Charge58.png has been created
+trigTimeCount Ended at 14
+trigTimeCount2 Ended at 14
+trigTimeCount3 Ended at 14
+

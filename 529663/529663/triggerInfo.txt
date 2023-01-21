@@ -1,0 +1,311 @@
+ Received 8187 triggers with 1529415 digits -> clusters = 0Sorting triggers length =  8187
+Iterating through Sorted triggers 
+Diff Between first and last Event 2.51539e+09
+ Avg Frequency = 3.25477e-15
+Triggers Sorted
+digClusRatio inf
+digTrigRatio 186.81
+First, Ns 4.12243e+13 BC 1531 Orbit 463586688
+Last , Ns 4.12268e+13 BC 685 Orbit 463614975
+ largest difference 3.42985e+07
+ largest negative   70061.8
+time : 119913
+time : 3.41606e+07
+time : 3.41621e+07
+time : 3.41699e+07
+time : 3.41701e+07
+time : 3.41742e+07
+time : 3.41777e+07
+time : 3.41864e+07
+time : 3.41867e+07
+time : 3.41869e+07
+time : 3.42011e+07
+time : 3.42014e+07
+time : 3.42019e+07
+time : 3.42072e+07
+time : 3.4208e+07
+time : 3.42097e+07
+time : 3.42105e+07
+time : 3.42106e+07
+time : 3.42128e+07
+time : 3.42129e+07
+time : 3.42138e+07
+time : 3.4214e+07
+time : 3.42169e+07
+time : 3.42186e+07
+time : 3.42193e+07
+time : 3.42206e+07
+time : 3.42214e+07
+time : 3.42236e+07
+time : 3.42242e+07
+time : 3.42251e+07
+time : 3.42267e+07
+time : 3.42307e+07
+time : 3.42317e+07
+time : 3.42317e+07
+time : 3.4232e+07
+time : 3.42343e+07
+time : 3.42359e+07
+time : 3.4237e+07
+time : 3.42376e+07
+time : 3.42443e+07
+time : 3.42448e+07
+time : 3.42451e+07
+time : 3.42454e+07
+time : 3.42457e+07
+time : 3.42497e+07
+time : 3.42501e+07
+time : 3.42574e+07
+time : 3.42614e+07
+time : 3.42693e+07
+time : 3.42718e+07
+time : 3.42723e+07
+time : 3.42744e+07
+time : 3.4275e+07
+time : 3.4287e+07
+time : 3.42935e+07
+time : 3.42985e+07
+firstTimes[timeLimit-2]106091
+ min min2 nax times First : 70061.8 70111.7 106789
+ min min2 nax times Last : 119913 3.41606e+07 3.42985e+07
+ avg times First : 1.88263e+09 Last : 0
+ fname 529663
+Number of Bins 25153
+1 4.12243e+13 2 4.12268e+13
+digit size = 1529415
+ Exceeded limit Trigger Number 147 Tdiff 3.41742e+07
+Count 0
+ Exceeded limit Trigger Number 147 Tdiff 3.41742e+07
+Count 0
+ Exceeded limit Trigger Number 294 Tdiff 3.42307e+07
+Count 1
+ Exceeded limit Trigger Number 294 Tdiff 3.42307e+07
+Count 1
+ Exceeded limit Trigger Number 440 Tdiff 3.42457e+07
+Count 2
+ Exceeded limit Trigger Number 440 Tdiff 3.42457e+07
+Count 2
+ Exceeded limit Trigger Number 585 Tdiff 3.4237e+07
+Count 3
+ Exceeded limit Trigger Number 585 Tdiff 3.4237e+07
+Count 3
+ Exceeded limit Trigger Number 733 Tdiff 3.41777e+07
+Count 4
+ Exceeded limit Trigger Number 733 Tdiff 3.41777e+07
+Count 4
+ Exceeded limit Trigger Number 880 Tdiff 3.42019e+07
+Count 5
+ Exceeded limit Trigger Number 880 Tdiff 3.42019e+07
+Count 5
+ Exceeded limit Trigger Number 1027 Tdiff 3.41701e+07
+Count 6
+ Exceeded limit Trigger Number 1027 Tdiff 3.41701e+07
+Count 6
+ Exceeded limit Trigger Number 1175 Tdiff 3.42343e+07
+Count 7
+ Exceeded limit Trigger Number 1175 Tdiff 3.42343e+07
+Count 7
+ Exceeded limit Trigger Number 1321 Tdiff 3.41867e+07
+Count 8
+ Exceeded limit Trigger Number 1321 Tdiff 3.41867e+07
+Count 8
+ Exceeded limit Trigger Number 1467 Tdiff 3.42723e+07
+Count 9
+ Exceeded limit Trigger Number 1467 Tdiff 3.42723e+07
+Count 9
+ Exceeded limit Trigger Number 1613 Tdiff 3.42138e+07
+Count 10
+ Exceeded limit Trigger Number 1613 Tdiff 3.42138e+07
+Count 10
+ Exceeded limit Trigger Number 1758 Tdiff 3.42242e+07
+Count 11
+ Exceeded limit Trigger Number 1758 Tdiff 3.42242e+07
+Count 11
+ Exceeded limit Trigger Number 1905 Tdiff 3.4208e+07
+Count 12
+ Exceeded limit Trigger Number 1905 Tdiff 3.4208e+07
+Count 12
+ Exceeded limit Trigger Number 2052 Tdiff 3.41869e+07
+Count 13
+ Exceeded limit Trigger Number 2052 Tdiff 3.41869e+07
+Count 13
+ Exceeded limit Trigger Number 2198 Tdiff 3.42186e+07
+Count 14
+ Exceeded limit Trigger Number 2198 Tdiff 3.42186e+07
+Count 14
+ Exceeded limit Trigger Number 2344 Tdiff 3.4214e+07
+Count 15
+ Exceeded limit Trigger Number 2344 Tdiff 3.4214e+07
+Count 15
+ Exceeded limit Trigger Number 2490 Tdiff 3.42011e+07
+Count 16
+ Exceeded limit Trigger Number 2490 Tdiff 3.42011e+07
+Count 16
+ Exceeded limit Trigger Number 2636 Tdiff 3.42251e+07
+Count 17
+ Exceeded limit Trigger Number 2636 Tdiff 3.42251e+07
+Count 17
+ Exceeded limit Trigger Number 2781 Tdiff 3.42614e+07
+Count 18
+ Exceeded limit Trigger Number 2781 Tdiff 3.42614e+07
+Count 18
+ Exceeded limit Trigger Number 2928 Tdiff 3.41864e+07
+Count 19
+ Exceeded limit Trigger Number 2928 Tdiff 3.41864e+07
+Count 19
+ Exceeded limit Trigger Number 3074 Tdiff 3.42106e+07
+Count 20
+ Exceeded limit Trigger Number 3074 Tdiff 3.42106e+07
+Count 20
+ Exceeded limit Trigger Number 3220 Tdiff 3.41606e+07
+Count 21
+ Exceeded limit Trigger Number 3220 Tdiff 3.41606e+07
+Count 21
+ Exceeded limit Trigger Number 3368 Tdiff 3.42193e+07
+Count 22
+ Exceeded limit Trigger Number 3368 Tdiff 3.42193e+07
+Count 22
+ Exceeded limit Trigger Number 3513 Tdiff 3.42744e+07
+Count 23
+ Exceeded limit Trigger Number 3513 Tdiff 3.42744e+07
+Count 23
+ Exceeded limit Trigger Number 3660 Tdiff 3.42072e+07
+Count 24
+ Exceeded limit Trigger Number 3660 Tdiff 3.42072e+07
+Count 24
+ Exceeded limit Trigger Number 3807 Tdiff 3.41621e+07
+Count 25
+ Exceeded limit Trigger Number 3807 Tdiff 3.41621e+07
+Count 25
+ Exceeded limit Trigger Number 3954 Tdiff 3.42105e+07
+Count 26
+ Exceeded limit Trigger Number 3954 Tdiff 3.42105e+07
+Count 26
+ Exceeded limit Trigger Number 4100 Tdiff 3.42359e+07
+Count 27
+ Exceeded limit Trigger Number 4100 Tdiff 3.42359e+07
+Count 27
+ Exceeded limit Trigger Number 4246 Tdiff 3.42014e+07
+Count 28
+ Exceeded limit Trigger Number 4246 Tdiff 3.42014e+07
+Count 28
+ Exceeded limit Trigger Number 4392 Tdiff 3.42097e+07
+Count 29
+ Exceeded limit Trigger Number 4392 Tdiff 3.42097e+07
+Count 29
+ Exceeded limit Trigger Number 4538 Tdiff 3.42317e+07
+Count 30
+ Exceeded limit Trigger Number 4538 Tdiff 3.42317e+07
+Count 30
+ Exceeded limit Trigger Number 4685 Tdiff 3.42693e+07
+Count 31
+ Exceeded limit Trigger Number 4685 Tdiff 3.42693e+07
+Count 31
+ Exceeded limit Trigger Number 4832 Tdiff 3.42169e+07
+Count 32
+ Exceeded limit Trigger Number 4832 Tdiff 3.42169e+07
+Count 32
+ Exceeded limit Trigger Number 4979 Tdiff 3.42267e+07
+Count 33
+ Exceeded limit Trigger Number 4979 Tdiff 3.42267e+07
+Count 33
+ Exceeded limit Trigger Number 5126 Tdiff 3.42985e+07
+Count 34
+ Exceeded limit Trigger Number 5126 Tdiff 3.42985e+07
+Count 34
+ Exceeded limit Trigger Number 5272 Tdiff 3.42451e+07
+Count 35
+ Exceeded limit Trigger Number 5272 Tdiff 3.42451e+07
+Count 35
+ Exceeded limit Trigger Number 5419 Tdiff 3.42206e+07
+Count 36
+ Exceeded limit Trigger Number 5419 Tdiff 3.42206e+07
+Count 36
+ Exceeded limit Trigger Number 5566 Tdiff 3.42718e+07
+Count 37
+ Exceeded limit Trigger Number 5566 Tdiff 3.42718e+07
+Count 37
+ Exceeded limit Trigger Number 5713 Tdiff 3.4275e+07
+Count 38
+ Exceeded limit Trigger Number 5713 Tdiff 3.4275e+07
+Count 38
+ Exceeded limit Trigger Number 5859 Tdiff 3.41699e+07
+Count 39
+ Exceeded limit Trigger Number 5859 Tdiff 3.41699e+07
+Count 39
+ Exceeded limit Trigger Number 6005 Tdiff 3.42574e+07
+Count 40
+ Exceeded limit Trigger Number 6005 Tdiff 3.42574e+07
+Count 40
+ Exceeded limit Trigger Number 6152 Tdiff 3.42214e+07
+Count 41
+ Exceeded limit Trigger Number 6152 Tdiff 3.42214e+07
+Count 41
+ Exceeded limit Trigger Number 6299 Tdiff 3.42236e+07
+Count 42
+ Exceeded limit Trigger Number 6299 Tdiff 3.42236e+07
+Count 42
+ Exceeded limit Trigger Number 6447 Tdiff 3.42454e+07
+Count 43
+ Exceeded limit Trigger Number 6447 Tdiff 3.42454e+07
+Count 43
+ Exceeded limit Trigger Number 6593 Tdiff 3.4232e+07
+Count 44
+ Exceeded limit Trigger Number 6593 Tdiff 3.4232e+07
+Count 44
+ Exceeded limit Trigger Number 6738 Tdiff 3.42501e+07
+Count 45
+ Exceeded limit Trigger Number 6738 Tdiff 3.42501e+07
+Count 45
+ Exceeded limit Trigger Number 6883 Tdiff 3.42443e+07
+Count 46
+ Exceeded limit Trigger Number 6883 Tdiff 3.42443e+07
+Count 46
+ Exceeded limit Trigger Number 7027 Tdiff 3.4287e+07
+Count 47
+ Exceeded limit Trigger Number 7027 Tdiff 3.4287e+07
+Count 47
+ Exceeded limit Trigger Number 7171 Tdiff 3.42497e+07
+Count 48
+ Exceeded limit Trigger Number 7171 Tdiff 3.42497e+07
+Count 48
+ Exceeded limit Trigger Number 7316 Tdiff 3.42129e+07
+Count 49
+ Exceeded limit Trigger Number 7316 Tdiff 3.42129e+07
+Count 49
+ Exceeded limit Trigger Number 7462 Tdiff 3.42448e+07
+Count 50
+ Exceeded limit Trigger Number 7462 Tdiff 3.42448e+07
+Count 50
+ Exceeded limit Trigger Number 7606 Tdiff 3.42317e+07
+Count 51
+ Exceeded limit Trigger Number 7606 Tdiff 3.42317e+07
+Count 51
+ Exceeded limit Trigger Number 7752 Tdiff 3.42128e+07
+Count 52
+ Exceeded limit Trigger Number 7752 Tdiff 3.42128e+07
+Count 52
+ Exceeded limit Trigger Number 7897 Tdiff 3.42935e+07
+Count 53
+ Exceeded limit Trigger Number 7897 Tdiff 3.42935e+07
+Count 53
+ Exceeded limit Trigger Number 8042 Tdiff 3.42376e+07
+Count 54
+ Exceeded limit Trigger Number 8042 Tdiff 3.42376e+07
+Count 54
+clusters size = 0
+trigger size from clusters = 8187
+Info in <TCanvas::Print>: file Event Information_529663_.png has been created
+Info in <TCanvas::Print>: file Trigger Frequency Hist and Graph 529663.png has been created
+Warning in <Fit>: Fit data is empty 
+Warning in <Fit>: Fit data is empty 
+Warning in <Fit>: Fit data is empty 
+Warning in <Fit>: Fit data is empty 
+Warning in <Fit>: Fit data is empty 
+Warning in <Fit>: Fit data is empty 
+Warning in <Fit>: Fit data is empty 
+Info in <TCanvas::Print>: file Digit Map of Low Charge529663.png has been created
+trigTimeCount Ended at 55
+trigTimeCount2 Ended at 55
+trigTimeCount3 Ended at 0
+

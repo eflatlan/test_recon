@@ -75,6 +75,18 @@ TH1F* trigSort = new TH1F("Trigger Time Histogram", "Trigger Time Histogram", 50
 TH1F* trigSort2 = new TH1F("Trigger Frequency Histogram", "Trigger Frequency Histogram", 50, 0, 30000);
 
 
+trigSort->SetTitleSize(trigSort->GetTitleSize("x")*1.3, "xyz");
+trigSort->SetLabelSize(trigSort->GetLabelSize("x")*1.3, "xyz");
+trigSort->SetXTitle("Event Time in LHC nS");
+trigSort->SetYTitle("Number of Entries"); 
+trigSort->SetTitleOffset(trigSort->GetTitleOffset("x")*1.2, "x");
+
+trigSort2->SetTitleSize(trigSort2->GetTitleSize("x")*1.3, "xyz");
+trigSort2->SetLabelSize(trigSort2->GetLabelSize("x")*1.3, "xyz");
+trigSort2->SetXTitle("Instantaneous Event Frequency [Hz]");
+trigSort2->SetYTitle("Number of Entries");
+trigSort2->SetTitleOffset(trigSort2->GetTitleOffset("x")*1.2, "x");
+
 void sortTriggers(vector<Trigger>& sortedTriggers);
 //void sortTriggers(vector<Trigger>& sortedTriggers, TGraph& trigTimeSortStd);
 double largestDiff = std::numeric_limits<double>::min();
@@ -231,12 +243,12 @@ void readClusters(int nEvents)
     const char* canStringSizes = Form("Digit Charge %i;Charge (ADC channel);Entries/40 ADC", i);
     digCharges[i].reset(new TH1F(canStringSizes, canStringSizes, 10, 0., 10.));
     digCharges[i]->SetLabelOffset(0.0065, "y");
-    digCharges[i]->SetTitleSize(digCharges[i]->GetTitleSize("x")*1.2, "xy");
+    digCharges[i]->SetTitleSize(digCharges[i]->GetTitleSize("x")*1.2, "xyz");
     digCharges[i]->SetLabelSize(digCharges[i]->GetLabelSize("x")*1.2, "xyz");
 
     const char* canDigMap = Form("Digit Map %i;x [cm];y [cm]", i);
     digMap[i].reset(new TH2F(canDigMap, canDigMap, 160, 0, 159, 144, 0, 143));
-    digMap[i]->SetTitleSize(digMap[i]->GetTitleSize("x")*1.2, "xy");
+    digMap[i]->SetTitleSize(digMap[i]->GetTitleSize("x")*1.3, "xyz");
 
     const char* mapCharge4Str = Form("Chamber %i Digits with Charge < 4 ;x [cm];y [cm]", i);
     mapCharge4[i].reset(new TH2F(mapCharge4Str, mapCharge4Str, 160, 0, 159, 144, 0, 143));
@@ -251,7 +263,7 @@ void readClusters(int nEvents)
     const char* canDigAvg = Form("Avg Charge Per Pad %i;  x [cm];y [cm]", i);
     digMapAvg[i].reset(new TH2F(canDigAvg, canDigAvg, 160, 0, 159, 144, 0, 143));
     //digMap[i].reset(new TH2F(canDigMap, canDigMap, 160*0.8, 0, 159*0.8, 144*0.8, 0, 160*0.8));
-    digMapAvg[i]->SetTitleSize(digMapAvg[i]->GetTitleSize("x")*1.2, "xy");
+    digMapAvg[i]->SetTitleSize(digMapAvg[i]->GetTitleSize("x")*1.3, "xy");
 
 
     const char* digEvtFreqStr = Form("Chamber %i Occupancy ;Occupancy [%];Number of Entries",i);
@@ -306,7 +318,7 @@ void readClusters(int nEvents)
     triggerTimeFreqHist[i]->SetYTitle("Number Of Entries");
   }
  
-  const int nBins = static_cast<int>((lastTrg-firstTrg)*pow(10,-5));
+  const int nBins = static_cast<int>((lastTrg-firstTrg)*pow(10,-4));
   cout << "Number of Bins " << nBins << endl;
   cout << "1 " << firstTrg << " 2 " << lastTrg << endl;
   trigSort->SetBins(nBins, firstTrg, lastTrg);
@@ -588,7 +600,7 @@ void readClusters(int nEvents)
   tpvs2[1]->Draw();
   
   auto pad5 = static_cast<TPad*>(temp2->cd(1));
-
+  pad5->SetLeftMargin(.01+pad2->GetLeftMargin());
   //trigTime->SetMinimum(pow(10,12));
   //trigTime->Draw("AC*");
   trigTime->Draw("A*");
@@ -604,21 +616,14 @@ void readClusters(int nEvents)
  
   for(int i = 0; i < 2; i++){
     TPad* pad = static_cast<TPad*>(temp2->cd(3+i));
-    pad->SetLeftMargin(.0275+pad->GetLeftMargin());
-    pad->SetBottomMargin(.0375+pad->GetBottomMargin());
+    pad->SetLeftMargin(.0575+pad->GetLeftMargin());
+    pad->SetBottomMargin(.0575+pad->GetBottomMargin());
     pad->SetRightMargin(.0375+pad->GetRightMargin());
 
     if(i==0){
-      trigSort->SetTitleSize(trigSort->GetTitleSize("x")*1.2, "xyz");
-      trigSort->SetLabelSize(trigSort->GetLabelSize("x")*1.2, "xyz");
-      trigSort->SetXTitle("Event Time in LHC nS");
-      trigSort->SetYTitle("Numer of Entries"); 
+
       trigSort->Draw();
     } else {
-      trigSort2->SetTitleSize(trigSort2->GetTitleSize("x")*1.2, "xyz");
-      trigSort2->SetLabelSize(trigSort2->GetLabelSize("x")*1.2, "xyz");
-      trigSort2->SetXTitle("Event Frequency");
-      trigSort2->SetYTitle("Numer of Entries");
       trigSort2->Draw();
     }
   }
@@ -758,7 +763,7 @@ void readClusters(int nEvents)
     //pad3->SetRightMargin(-.0025+pad3->GetRightMargin());
     pad3->SetLeftMargin(.025+pad3->GetLeftMargin());
     mapCharge4[iCh]->SetLabelOffset(mapCharge4[iCh]->GetLabelOffset("y")+0.0015, "y");
-    mapCharge4[iCh]->SetTitleOffset(1.3,"y");
+    mapCharge4[iCh]->SetTitleOffset(.9,"y");
 
     mapCharge4[iCh]->SetStats(kFALSE);
     mapCharge4[iCh]->SetMarkerStyle(3);
@@ -780,9 +785,9 @@ void readClusters(int nEvents)
     // ========== Digit Charge =========================
     auto pad3 = static_cast<TPad*>(t->cd(pos));
     pad3->SetBottomMargin(.075+pad3->GetBottomMargin());
-    pad3->SetLeftMargin(.05+pad3->GetLeftMargin());
+    pad3->SetLeftMargin(.1+pad3->GetLeftMargin());
     digCharges[iCh]->SetLabelOffset(digCharges[iCh]->GetLabelOffset("y")+0.0015, "y");
-    digCharges[iCh]->SetTitleOffset(.95,"y");
+    digCharges[iCh]->SetTitleOffset(1.45,"y");
     pad3->SetRightMargin(-.0025+pad3->GetRightMargin());
     digCharges[iCh]->Draw();
   }  

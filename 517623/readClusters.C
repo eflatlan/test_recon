@@ -75,17 +75,7 @@ TH1F* trigSort = new TH1F("Trigger Time Histogram", "Trigger Time Histogram", 50
 TH1F* trigSort2 = new TH1F("Trigger Frequency Histogram", "Trigger Frequency Histogram", 50, 0, 30000);
 
 
-trigSort->SetTitleSize(trigSort->GetTitleSize("x")*1.3, "xyz");
-trigSort->SetLabelSize(trigSort->GetLabelSize("x")*1.3, "xyz");
-trigSort->SetXTitle("Event Time in LHC nS");
-trigSort->SetYTitle("Number of Entries"); 
-trigSort->SetTitleOffset(trigSort->GetTitleOffset("x")*1.2, "x");
 
-trigSort2->SetTitleSize(trigSort2->GetTitleSize("x")*1.3, "xyz");
-trigSort2->SetLabelSize(trigSort2->GetLabelSize("x")*1.3, "xyz");
-trigSort2->SetXTitle("Instantaneous Event Frequency [Hz]");
-trigSort2->SetYTitle("Number of Entries");
-trigSort2->SetTitleOffset(trigSort2->GetTitleOffset("x")*1.2, "x");
 
 void sortTriggers(vector<Trigger>& sortedTriggers);
 //void sortTriggers(vector<Trigger>& sortedTriggers, TGraph& trigTimeSortStd);
@@ -599,12 +589,13 @@ void readClusters(int nEvents)
   temp2->cd(2);
   tpvs2[1]->Draw();
   
-  auto pad5 = static_cast<TPad*>(temp2->cd(1));
-  pad5->SetLeftMargin(.01+pad2->GetLeftMargin());
-  //trigTime->SetMinimum(pow(10,12));
-  //trigTime->Draw("AC*");
-  trigTime->Draw("A*");
-
+  {
+    auto pad5 = static_cast<TPad*>(temp2->cd(1));
+    pad5->SetLeftMargin(.01+pad5->GetLeftMargin());
+    //trigTime->SetMinimum(pow(10,12));
+    //trigTime->Draw("AC*");
+    trigTime->Draw("A*");
+  }
 
 
 
@@ -1176,6 +1167,20 @@ void sortTriggers(vector<Trigger>& sortedTriggers)
   }
 
   cout << "Triggers Sorted" << endl;  
+
+
+
+  trigSort->SetTitleSize(trigSort->GetTitleSize("x")*1.3, "xyz");
+  trigSort->SetLabelSize(trigSort->GetLabelSize("x")*1.3, "xyz");
+  trigSort->SetXTitle("Event Time in LHC nS");
+  trigSort->SetYTitle("Number of Entries"); 
+  trigSort->SetTitleOffset(trigSort->GetTitleOffset("x")*1.2, "x");
+
+  trigSort2->SetTitleSize(trigSort2->GetTitleSize("x")*1.3, "xyz");
+  trigSort2->SetLabelSize(trigSort2->GetLabelSize("x")*1.3, "xyz");
+  trigSort2->SetXTitle("Instantaneous Event Frequency [Hz]");
+  trigSort2->SetYTitle("Number of Entries");
+  trigSort2->SetTitleOffset(trigSort2->GetTitleOffset("x")*1.2, "x");
 }
 
 

@@ -1,0 +1,12 @@
+#0  0x00007f231ec435db in __GI___waitpid (pid=789172, stat_loc=stat_loc
+entry=0x7ffd5e6e0948, options=options
+entry=0) at ../sysdeps/unix/sysv/linux/waitpid.c:30
+#1  0x00007f231eba5ce7 in do_system (line=<optimized out>) at ../sysdeps/posix/system.c:168
+#2  0x00007f231fc511bc in TUnixSystem::Exec (shellcmd=<optimized out>, this=0xb15670) at /jenkins/workspace/build-any-ib/sw/20156442/1/SOURCES/ROOT/v6-26-10-alice4/v6-26-10-alice4/core/unix/src/TUnixSystem.cxx:2104
+#3  TUnixSystem::StackTrace (this=0xb15670) at /jenkins/workspace/build-any-ib/sw/20156442/1/SOURCES/ROOT/v6-26-10-alice4/v6-26-10-alice4/core/unix/src/TUnixSystem.cxx:2395
+#4  0x00007f2321c063c9 in FairLogger::LogFatalMessage () at /jenkins/workspace/build-any-ib/sw/20156442/1/SOURCES/FairRoot/v18.4.9/v18.4.9/fairtools/FairLogger.cxx:195
+#5  0x00007f231f4ba7b5 in std::function<void ()>::operator()() const (this=0x7f231f4d8b40 <fair::Logger::fFatalCallback>) at /jenkins/workspace/DailyBuilds/DailyO2-slc8/daily-tags.gXoSib8B9M/slc8_x86-64/GCC-Toolchain/v10.2.0-alice2-5/include/c++/10.2.0/bits/std_function.h:248
+#6  fair::Logger::~Logger (this=0x7ffd5e6e2e70, __in_chrg=<optimized out>) at /jenkins/workspace/DailyBuilds/DailyO2-slc8/daily-tags.gXoSib8B9M/SOURCES/FairLogger/v1.11.1/v1.11.1/logger/Logger.cxx:276
+#7  0x00007f2326c3c818 in doUnknownException (s=..., processName=processName
+entry=0x7ffd5e6e55ea "o2-ctf-reader-workflow") at /root/alice/sw/slc8_x86-64/GCC-Toolchain/v10.2.0-alice2-5/include/c++/10.2.0/ext/new_allocator.h:89
+#8  0x000000000040c65a in main (argc=1584280880, argv=0x7ffd5e6e3648) at /root/alice/sw/SOURCES/O2/dev/0/Framework/Core/include/Framework/runDataProcessing.h:248

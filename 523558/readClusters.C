@@ -224,7 +224,7 @@ void readClusters(int nEvents)
     digCharge[i]->SetYTitle("Entries/40 ADC");
     digCharge[i]->SetLabelOffset(0.0065, "y");
 
-    const char* canStringSizes = Form("Digit Charge Small%i", i);
+    const char* canStringSizes = Form("Digit Charge %i", i);
     digCharges[i].reset(new TH1F(canStringSizes, canStringSizes, 10, 0., 10.));
     digCharges[i]->SetXTitle("Charge (ADC channel)");
     digCharges[i]->SetYTitle("Entries/40 ADC");
@@ -331,8 +331,8 @@ void readClusters(int nEvents)
   (canvas[4])->SetLogy();
 
   (canvas[5]).reset(new TCanvas(Form("PlaceHolder %i",fname), Form("PlaceHolder %i",fname),1200, 1200));
-  (canvas[6]).reset(new TCanvas(Form("PlaceHolder2 %i",fname), Form("PlaceHolder3 %i",fname),1200, 1200)); 
-  (canvas[7]).reset(new TCanvas(Form("PlaceHolder2 %i",fname), Form("PlaceHolder3 %i",fname),1200, 1200));  
+  (canvas[6]).reset(new TCanvas(Form("PlaceHolder2 %i",fname), Form("PlaceHolder2 %i",fname),1200, 1200)); 
+  (canvas[7]).reset(new TCanvas(Form("PlaceHolder3 %i",fname), Form("PlaceHolder3 %i",fname),1200, 1200));  
 
 
   canvas[0]->SetLeftMargin(.1+canvas[0]->GetLeftMargin());
@@ -768,10 +768,14 @@ void readClusters(int nEvents)
     (canvas[1])->SetLogx();
     pad3->SetLogy(1);
     pad3->SetLogx(1);
-    pad3->SetBottomMargin(.0025+pad3->GetBottomMargin());
-    pad3->SetLeftMargin(.065+pad3->GetLeftMargin());
+    pad3->SetBottomMargin(.025+pad3->GetBottomMargin());
+    pad3->SetLeftMargin(.02+pad3->GetLeftMargin());
     digCharge[iCh]->SetLabelOffset(digCharge[iCh]->GetLabelOffset("y")+0.0015, "y");
-    digCharge[iCh]->SetTitleOffset(1.3,"y");
+    digCharge[iCh]->SetTitleOffset(1.05,"y");
+    digCharge[iCh]->SetTitleOffset(1.1,"x");
+    digCharge[iCh]->SetTitleSize(digCharge[iCh]->GetTitleSize("x")*1.05, "xy");
+    digCharge[iCh]->SetLabelSize(digCharge[iCh]->GetLabelSize("x")*1.05, "xy");
+
     pad3->SetRightMargin(-.0025+pad3->GetRightMargin());
    
     digCharge[iCh]->Draw();
@@ -921,7 +925,7 @@ vector<string> dig2Clus(const std::string &fileName, vector<Cluster>& clusters, 
 
   const auto& ratioInfo = Form("Dig/Clus = %.2f Dig/Events= %.0f", digClusRatio, digTrigRatio); 
 
-  const auto& trigInfo = Form("Events %i, Frequency [Hz]= %.2f " , numTriggers, triggerFrequency); 
+  const auto& trigInfo = Form("Events %i, Frequency [Hz] = %.2f " , numTriggers, triggerFrequency); 
   const auto& digClusInfo = Form("Digits %i Clusters %i",
               numDigits, numClusters);
   

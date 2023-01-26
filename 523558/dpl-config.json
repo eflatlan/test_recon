@@ -31,7 +31,7 @@
     "HMP-RawToDigits": {
         "in-file": "hmpidRaw.raw",
         "fast-decode": "false",
-        "out-file": "t2.root",
+        "out-file": "t.root",
         "base-file": "hmpDecode",
         "orbit-offset-enumeration": "0",
         "orbit-multiplier-enumeration": "0",
@@ -40,7 +40,7 @@
         "step-value-enumeration": "1"
     },
     "HMP-DigitsToRoot": {
-        "out-file": "hmpDig10_local_del4x_.root"
+        "out-file": "hmpDig100_remote_.root"
     },
     "internal-dpl-injected-dummy-sink": ""
 }

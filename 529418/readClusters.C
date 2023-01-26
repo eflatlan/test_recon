@@ -150,7 +150,7 @@ void readClusters(int nEvents = 1, bool leadRun = false)
   std::array<std::unique_ptr<TGraph>, 7> trigGraph;
   
   std::array<std::unique_ptr<TH1F>, 7> digCharge, hMipCharge, digPerEvent, digCharges;
-  std::array<std::unique_ptr<TH2F>, 7> digMap, digMapAvg, digMapSel, test, mapCharge4, digMapEntyAvg, mapEntCount;
+  std::array<std::unique_ptr<TH2F>, 7> digMap, digMapAvg, digMapSel, test, mapCharge4, digMapEntyAvg, mapEntCount, dig0Charge;
 
 
   std::array<std::unique_ptr<TH1F>, 3> triggerTimeFreqHist;
@@ -252,6 +252,11 @@ void readClusters(int nEvents = 1, bool leadRun = false)
     mapCharge4[i]->SetTitleSize(mapCharge4[i]->GetTitleSize("x")*1.2, "xy");
 
     
+    const char* can0Charge = Form("Number of Zero Charge %i; x [cm];y [cm]", i);
+    dig0Charge[i].reset(new TH2F(can0Charge, can0Charge, 160, 0, 159, 144, 0, 143));
+    //digMap[i].reset(new TH2F(canDigMap, canDigMap, 160*0.8, 0, 159*0.8, 144*0.8, 0, 160*0.8));
+    dig0Charge[i]->SetTitleSize(dig0Charge[i]->GetTitleSize("x")*1.3, "xy");
+
 
     const char* canDigSel = Form("Selected Pads %i; x [cm];y [cm]", i);
     digMapSel[i].reset(new TH2F(canDigSel, canDigSel, 160, 0, 159, 144, 0, 143));
@@ -472,7 +477,7 @@ void readClusters(int nEvents = 1, bool leadRun = false)
       digMapAvg[module]->Fill(padChX, padChY, charge/numTriggers);
       if(charge == 0){
         cout << " charge == 0 " << module << endl;
-        digMapSel[module]->Fill(padChX, padChY, 1.);
+        dig0Charge[module]->Fill(padChX, padChY, 1.);
       }
 
       if(charge > 0){
@@ -521,7 +526,7 @@ void readClusters(int nEvents = 1, bool leadRun = false)
 
   //auto folderName = fname.c_str();
   std::array<std::unique_ptr<TPaveText>, 7> tpvs;
-  std::array<std::unique_ptr<TPaveText>, 6> tpvs2;
+  std::array<std::unique_ptr<TPaveText>, 7> tpvs2;
 
   //fileInfo
   const auto f1 = (fileInfo[0]).c_str();
@@ -535,7 +540,7 @@ void readClusters(int nEvents = 1, bool leadRun = false)
 
   vector<const char*> tpvTexts{"MIP Clusters Charge", "Digits-Charge, logx logy", "Digits-Map", "Digits-Map Avg", "Digits Per Event", "Map of Evaluated Areas", "Digits Charge Small Scale"};
 
-  vector<const char*> tpvTexts2{"Event Info", "Event Information",  "Map of Evaluated Areas","Charge Below 4", "Average Charge Normalized to Channel-Entries", "Number of Entries in Channel"};
+  vector<const char*> tpvTexts2{"Event Info", "Event Information",  "Map of Evaluated Areas","Charge Below 4", "Average Charge Normalized to Channel-Entries", "Number of Entries in Channel", "Digits With 0 - charge"};
 
 
   int j = 0;
@@ -733,7 +738,7 @@ void readClusters(int nEvents = 1, bool leadRun = false)
 
     const auto& pTotalDigs = static_cast<float>(100.0f*digMap[iCh]->GetEntries()/digSize);
 
-
+    pad5->SetLogz(1);
     pad5->SetLeftMargin(+.035+pad5->GetLeftMargin());
     pad5->SetBottomMargin(.085+pad5->GetBottomMargin());
     pad5->SetRightMargin(.085+pad5->GetRightMargin());    
@@ -766,6 +771,7 @@ void readClusters(int nEvents = 1, bool leadRun = false)
     pad5->SetLeftMargin(.035+pad5->GetLeftMargin());
     digMapAvg[iCh]->SetTitle(Form("Chamber Avg %i Percentage of total = %02.0f", iCh, pTotalDigs));
     digMapAvg[iCh]->SetStats(kFALSE);
+    pad5->SetLogz(1);
     digMapAvg[iCh]->Draw("Colz");
   }
     
@@ -817,6 +823,33 @@ void readClusters(int nEvents = 1, bool leadRun = false)
   gStyle->SetOptStat("eimr");
   gStyle->SetLabelOffset(0.00525, "y");
 
+  std::unique_ptr<TCanvas> digMap0;
+  digMap0.reset(new TCanvas(Form("Digits With 0 - charge%i",fname), Form("Digits With 0 - charge%i",fname), 1200, 1200));
+  digMap0->Divide(3,3);
+
+  digMap0->cd(3);
+  tpvs2[6]->Draw();
+  for (int iCh = 0; iCh < 7; iCh++) {
+    const auto& pos = posArr[iCh];
+    // ========== Digit Charge =========================
+    auto pad3 = static_cast<TPad*>(digMap0->cd(pos));
+    pad3->SetBottomMargin(.0035+pad3->GetBottomMargin());
+    pad3->SetLeftMargin(.085+pad3->GetLeftMargin());
+    pad3->SetRightMargin(.0085+pad3->GetRightMargin());
+    dig0Charge[iCh]->SetTitleOffset(1.3,"y");
+
+
+
+    dig0Charge[iCh]->SetLabelOffset(digMap[iCh]->GetLabelOffset("y")-0.0015, "y");
+    dig0Charge[iCh]->SetTitleOffset(digMap[iCh]->GetTitleOffset("y")-0.0035, "y");
+    dig0Charge[iCh]->SetTitleOffset(digMap[iCh]->GetTitleOffset("x")-0.0005, "x");
+    dig0Charge[iCh]->SetMarkerStyle(3);
+    dig0Charge[iCh]->SetStats(kFALSE);
+    dig0Charge[iCh]->Draw("Colz");
+  }
+
+  digMap0->Show();
+  digMap0->SaveAs("DigitsWithZeroCharge.png");
 
   std::unique_ptr<TCanvas> digMapSelCanv;
   digMapSelCanv.reset(new TCanvas(Form("Pads turned off by user%i",fname), Form("Pads turned off by user%i",fname), 1200, 1200));
@@ -835,8 +868,6 @@ void readClusters(int nEvents = 1, bool leadRun = false)
     digMapSel[iCh]->SetTitleOffset(1.3,"y");
     digMapSel[iCh]->SetMarkerStyle(3);
     digMapSel[iCh]->SetStats(kFALSE);
-
-    digMapSel[iCh]->SetTitle
 
     digMapSel[iCh]->SetLabelOffset(digMap[iCh]->GetLabelOffset("y")-0.0015, "y");
     digMapSel[iCh]->SetTitleOffset(digMap[iCh]->GetTitleOffset("y")-0.0035, "y");

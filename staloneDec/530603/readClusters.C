@@ -833,7 +833,7 @@ void readClusters(int nEvents = 1, bool leadRun = false)
     const auto& pos = posArr[iCh];
     // ========== Digit Charge =========================
     auto pad3 = static_cast<TPad*>(digMap0->cd(pos));
-    pad3->SetBottomMargin(.0035+pad3->GetBottomMargin());
+    pad3->SetBottomMargin(.0055+pad3->GetBottomMargin());
     pad3->SetLeftMargin(.085+pad3->GetLeftMargin());
     pad3->SetRightMargin(.0085+pad3->GetRightMargin());
     dig0Charge[iCh]->SetTitleOffset(1.3,"y");
@@ -1047,7 +1047,7 @@ vector<string> dig2Clus(const std::string &fileName, vector<Cluster>& clusters, 
             mDigitsFromFilePtr->data() + trig.getFirstEntry(),
             size_t(trig.getNumberOfObjects())};
         const size_t clStart = clusters.size();
-        mRec->Dig2Clu(trigDigits, clusters, mSigmaCut, true); //ef:uncomment
+        //mRec->Dig2Clu(trigDigits, clusters, mSigmaCut, true); //ef:uncomment
         clusterTriggers.emplace_back(trig.getIr(), clStart,
                                      clusters.size() - clStart);
       }

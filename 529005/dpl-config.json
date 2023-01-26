@@ -14,6 +14,6 @@
     },
     "internal-dpl-injected-dummy-sink": "",
     "HMP-DigitsToRoot": {
-        "out-file": "hmp529005_Dig_120.root"
+        "out-file": "hmp_3.root"
     }
 }

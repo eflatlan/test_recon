@@ -1,0 +1,46 @@
+{
+    "internal-dpl-clock": "",
+    "ctf-reader": {
+        "select-ctf-ids": "",
+        "impose-run-start-timstamp": "0",
+        "local-tf-counter": "false",
+        "orbit-offset-enumeration": "0",
+        "orbit-multiplier-enumeration": "0",
+        "start-value-enumeration": "0",
+        "end-value-enumeration": "-1",
+        "step-value-enumeration": "1"
+    },
+    "internal-dpl-ccdb-backend": {
+        "condition-backend": "https:\/\/alice-ccdb.cern.ch",
+        "condition-not-before": "0",
+        "condition-not-after": "3385078236000",
+        "condition-remap": "",
+        "condition-tf-per-query": "0",
+        "condition-time-tolerance": "5000",
+        "orbit-offset-enumeration": "0",
+        "orbit-multiplier-enumeration": "0",
+        "start-value-enumeration": "0",
+        "end-value-enumeration": "-1",
+        "step-value-enumeration": "1"
+    },
+    "hmpid-entropy-decoder": {
+        "ctf-dict": "ccdb",
+        "condition-backend": "https:\/\/alice-ccdb.cern.ch",
+        "condition-timestamp": "0"
+    },
+    "HMP-RawToDigits": {
+        "in-file": "hmpidRaw.raw",
+        "fast-decode": "false",
+        "out-file": "t.root",
+        "base-file": "hmpDecode",
+        "orbit-offset-enumeration": "0",
+        "orbit-multiplier-enumeration": "0",
+        "start-value-enumeration": "0",
+        "end-value-enumeration": "-1",
+        "step-value-enumeration": "1"
+    },
+    "HMP-DigitsToRoot": {
+        "out-file": "hmpDig44_remote_.root"
+    },
+    "internal-dpl-injected-dummy-sink": ""
+}

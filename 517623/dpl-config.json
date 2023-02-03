@@ -1,6 +1,7 @@
 {
     "internal-dpl-clock": "",
     "tf-reader": {
+        "fetch-failure-threshold": "0",
         "orbit-offset-enumeration": "0",
         "orbit-multiplier-enumeration": "0",
         "start-value-enumeration": "0",
@@ -12,8 +13,17 @@
         "result-file": "\/tmp\/hmpRawDecodeResults",
         "fast-decode": "true"
     },
+    "HMP-Clusterization": {
+        "sigma-cut": ""
+    },
     "internal-dpl-injected-dummy-sink": "",
-    "HMP-DigitsToRoot": {
-        "out-file": "tfs_517623_400tf_20delay.root"
+    "HMPClustersWriter": {
+        "outfile": "hmpidclusters.root",
+        "output-dir": "none",
+        "treename": "o2hmp",
+        "treetitle": "o2hmp",
+        "nevents": "1",
+        "autosave": "-1",
+        "terminate": "process"
     }
 }

@@ -43,7 +43,9 @@
 #include <malloc.h>
 #include <math.h>
 #include <stdio.h>
+#include <algorithm>
 #include <string.h>
+#include <ctype.h>
 #include <string>
 #include <sys/stat.h>
 #include <thread>
@@ -193,13 +195,48 @@ void readClusters(int nEvents = 1, bool leadRun = false) {
   for (const auto &entry : fs::directory_iterator(path)) {
     const auto &pathName = static_cast<string>(entry.path());
     // std::cout << pathName << std::endl;
-    if (pathName.size() < 5)
+    if (pathName.size() <= 5)
       continue;
+
+    const auto fileName = pathName.substr(pathName.find_last_of("\\/")+1, pathName.length());
+    std::cout << " fileName " << fileName << std::endl;
+
+    if (fileName.size() <= 5)
+      continue;
+
+
     const auto &fileEnd =
-        (pathName.substr(pathName.length() - 5, pathName.length()));
+        (fileName.substr(fileName.length() - 5));
+    std::cout << " fileEnd " << fileEnd << std::endl;
     if (fileEnd != ".root")
       continue;
+    
+    
+    auto fName = fileName;
+    
+    for(auto &c : fName)  c = std::tolower(static_cast<unsigned char>(c));
+    /*
+    std::for_each(fName.begin(), fName.end(), [](char& c)
+    {
+      c = std::tolower(static_cast<unsigned char>(c));
+    }); */ 
+
+    /*
+    std::transform(fName.cbegin(), fName.cend(), fName.cbegin(), [](unsigned char c){
+      return std::tolower(c);
+    }); */
+
+    /*    std::transform(fName.begin(), fName.end(), fName.begin()), static_cast<char>(std::tolower)); / *[](unsigned char c){
+      return std::tolower(c);
+    });*/
+
+
+    
+    if(fName.find("hmp") == std::string::npos || fName.find("dig") == std::string::npos)
+      continue;
+
     std::cout << " dig2clus " << pathName << std::endl;
+
 
     auto tmp = pathName.substr(0, pathName.find_last_of("\\/"));
 

@@ -8,8 +8,8 @@ ClassImp(HMPIDTools);
 // chamber [0..6], link 0 = Left; 1 = Right
 void HMPIDTools::setLinkStatus(int chamber, int link, bool status)
 {
-  mempcopy(linkStatus[chamber, link], status);
-  //linkStatus[chamber, link] = status;
+  //mempcopy(linkStatus[chamber, link], status);
+  linkStatus[chamber][link] = static_cast<int>(status);
   const int xMin = sectorWhidth*link;
   const int xMax = sectorWhidth*(link+1);
   const int yMin = 0;
@@ -20,7 +20,7 @@ void HMPIDTools::setLinkStatus(int chamber, int link, bool status)
 // chamber [0..6], sector [0..5]
 void HMPIDTools::setSectorStatus(int chamber, int sector, bool status)     
 {
-  sectorStatus[chamber, sector] = status;
+  sectorStatus[chamber][sector] = static_cast<int>(status);
   const int xMin = 0;
   const int xMax = sectorWhidth;
   const int yMin = sectorHeight*sector;

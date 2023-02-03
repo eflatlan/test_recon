@@ -3,7 +3,7 @@
 
 
 #include "HMPIDTools.h"
-
+#include "HMPIDTools.h"
 
 #include "DataFormatsHMP/Cluster.h"
 #include "DataFormatsHMP/Digit.h"
@@ -123,6 +123,9 @@ double chargeAvgByEntries[7][160][144] = {
 int chargeAvgCount[7][160][144] = {{{0}}};
 
 //o2::hmpidTools::HMPIDTools hmpidTools;
+ClassImp(HMPIDTools);
+class HMPIDTools;
+
 HMPIDTools hmpidTools;
 
 
@@ -177,8 +180,7 @@ void readClusters(int nEvents = 1, bool leadRun = false) {
   
 
   // Testing..
-  hmpidTools.setPadChannel(padDigOff, 6, 141, 150, 105,
-                    110); // chamber, xLow, xHigh, yLow,  yHigh
+  hmpidTools.setPadChannel(6, 141, 150, 105, 110, false); // chamber, xLow, xHigh, yLow,  yHigh
 
   vector<Cluster> clusters;
   vector<Trigger> clusterTriggers;
@@ -499,10 +501,10 @@ void readClusters(int nEvents = 1, bool leadRun = false) {
   }
 
   for (const auto &dig : digits) {
-    const auto digId = dig.getPadID();
+    const auto& digId = dig.getPadID();
 
     cout << "digit ID : " << digId << endl;
-    Digit::pad2Absolute(, &module, &padChX, &padChY);
+    Digit::pad2Absolute(digId, &module, &padChX, &padChY);
     const auto &charge = dig.getQ();
     if (padDig[module][padChX][padChY] == true) {
       digCharge[module]->Fill(charge);

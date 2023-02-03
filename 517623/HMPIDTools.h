@@ -20,17 +20,88 @@ using std::this_thread::sleep_for;
 
 class HMPIDTools
 {
-  private:
+
+  public:
+
     HMPIDTools() = default;
     ~HMPIDTools() = default;
+
+    void setLinkStatus(int chamber, int link, bool status);            // chamber [0..6], link 0 = Left; 1 = Right
+    void setSectorStatus(int chamber, int sector, bool status);        // chamber [0..6], sector [0..5]
+    void setRadiatorStatus(int chamber, int radiator, bool status);    // chamber [0..6], radiator [0..2]
+
+    void setLinkListStatus(vector<std::array<int, 2>>, bool status);      // Set A list of Links off
+    void setSectorListStatus(vector<std::array<int, 2>>, bool status);    // Set A List of Sectors off
+    void setRadiatorListStatus(vector<std::array<int, 2>>, bool status);  // Set A List of Radiators off
+ 
+    void setPadChannel(int chamber, int xLow, int xHigh, int yLow, int yHigh, bool status);
+
+
+    int getLinkStatus(int chamber, int link)
+    {
+      return sectorStatus[chamber][link];
+    }
+
+    int getSectorStatus(int chamber, int sector)
+    {
+      return sectorStatus[chamber][sector];
+    }
+
+    int getRadiatorStatus(int chamber, int radiator)
+    {
+      return radiatorStatus[chamber][radiator];
+    }
+
+    const std::size_t sectorHeight = 144/6;
+    const std::size_t sectorWhidth = 160/2;
+
+    void drawSectorStatus()
+    {
+      if(sectorStatusCanvas == nullptr){
+        sectorStatusCanvas->Divide(3, 3);
+        LOG(warn) << "Sector Status Canvas Was Nullptr" << endl;
+        return;
+        std::exit(0);
+      }
+
+      for(int iCh = 0; iCh < 7; iCh++){
+        const auto& pos = posArr[iCh];
+        const auto& pad = static_cast<TPad*>(sectorStatusCanvas->cd(pos));
+        if(sectorStatusMap[iCh]!=nullptr){
+          fillSectorStatus(iCh);
+          sectorStatusMap[iCh]->SetStats(kFALSE);
+          sectorStatusMap[iCh]->Draw();
+        }
+      }
+    }
+
+    void fillSectorStatus(int chamber)
+    { 
+      for(int iSec = 0; iSec < 6; iSec++){
+        const auto& sectorStatus = static_cast<double>(getSectorStatus(chamber, iSec));
+        sectorStatusMap[chamber]->Fill(0.0, (double)iSec, sectorStatus); // x, y, value
+      } 
+    }
+
+
+    void drawLinkStatus()
+    {
+    }
+
+    void drawSectoStatus()
+    {
+    }
+
+  private:
+
 
     bool channelStatus[7][160][144] = {{{true}}};
     //bool sectorStatus[7][160][144] = {{{true}}};
     //bool linkStatus[7][160][144] = {{{true}}};
 
-    bool sectorStatus[7][6] = {{true}};
-    bool linkStatus[7][2] = {{true}};
-    bool radiatorStatus[7][3] = {{true}};
+    int sectorStatus[7][6] = {{1}};
+    int linkStatus[7][2] = {{1}};
+    int radiatorStatus[7][3] = {{1}};
     
     // position of pads in canvas according to HMPID-modules
     static constexpr int posArr[] = {9, 8, 6, 5, 4, 2, 1};
@@ -64,73 +135,7 @@ class HMPIDTools
       }
     }
 
-  public:
-    void setLinkStatus(int chamber, int link, bool status);            // chamber [0..6], link 0 = Left; 1 = Right
-    void setSectorStatus(int chamber, int sector, bool status);        // chamber [0..6], sector [0..5]
-    void setRadiatorStatus(int chamber, int radiator, bool status);    // chamber [0..6], radiator [0..2]
-
-    void setLinkListStatus(vector<std::array<int, 2>>, bool status);      // Set A list of Links off
-    void setSectorListStatus(vector<std::array<int, 2>>, bool status);    // Set A List of Sectors off
-    void setRadiatorListStatus(vector<std::array<int, 2>>, bool status);  // Set A List of Radiators off
- 
-    void setPadChannel(int chamber, int xLow, int xHigh, int yLow, int yHigh, bool status);
-
-
-    int getLinkStatus(int chamber, int link)
-    {
-      return sectorStatus[chamber][link];
-    }
-
-    int getSectorStatus(int chamber, int sector)
-    {
-      return sectorStatus[chamber][sector];
-    }
-
-    int getRadiatorStatus(int chamber, int radiator)
-    {
-      return radiatorStatus[chamber][radiator];
-    }
-
-    const std::size_t sectorHeight = 144/6;
-    const std::size_t sectorWhidth = 160/2;
-
-    void drawSectorStatus()
-    {
-      if(sectorStatusCanvas == nullptr){
-        LOG(warn) << "Sector Status Canvas Was Nullptr" << endl;
-        return;
-        std::exit(0);
-      }
-
-      for(int iCh = 0; iCh < 7; iCh++){
-        const auto& pos = posArr[iCh];
-        const auto& pad = static_cast<TPad*>(sectorStatusCanvas->cd(pos));
-        if(sectorStatusMap[iCh]!=nullptr){
-          fillSectorStatus(iCh);
-          sectorStatusMap[iCh]->SetStats(kFalse);
-          sectorStatusMap[iCh]->Draw();
-        }
-      }
-    }
-
-    void fillSectorStatus(int chamber)
-    { 
-      for(int iSec = 0; iSec < 6; iSec++){
-        const auto& sectorStatus = static_cast<double>(getSectorStatus(chamber, iSec));
-        sectorStatusMap[chamber]->Fill(0.0, (double)iSec, sectorStatus); // x, y, value
-      } 
-    }
-
-
-    void drawLinkStatus()
-    {
-    }
-
-    void drawSectoStatus()
-    {
-    }
-
-  ClassDefNV(HMPIDTools, 0);
+  ClassDef(HMPIDTools, 0);
 }; // end class HMPIDTools
 
 

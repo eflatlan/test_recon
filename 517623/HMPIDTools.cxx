@@ -10,8 +10,8 @@ void HMPIDTools::setLinkStatus(int chamber, int link, bool status)
 {
   //mempcopy(linkStatus[chamber, link], status);
   linkStatus[chamber][link] = static_cast<int>(status);
-  const int xMin = sectorWhidth*link;
-  const int xMax = sectorWhidth*(link+1);
+  const int xMin = linkWhidth*link;
+  const int xMax = linkWhidth*(link+1);
   const int yMin = 0;
   const int yMax = sectorHeight;
   setPadChannel(chamber, xMin, xMax, yMin, yMax, status);
@@ -21,12 +21,28 @@ void HMPIDTools::setLinkStatus(int chamber, int link, bool status)
 void HMPIDTools::setSectorStatus(int chamber, int sector, bool status)     
 {
   sectorStatus[chamber][sector] = static_cast<int>(status);
+  LOGP(info, "Setting : Chamber {} Sector {} Status {}", chamber, sector, status);
   const int xMin = 0;
   const int xMax = sectorWhidth;
   const int yMin = sectorHeight*sector;
   const int yMax = sectorHeight*(sector+1);
   setPadChannel(chamber, xMin, xMax, yMin, yMax, status);
 }   
+
+// chamber [0..6], sector [0..5]
+void HMPIDTools::setSectorStatus(TH2F* tHist, int chamber, int sector, bool status)     
+{
+  sectorStatus[chamber][sector] = static_cast<int>(status);
+  LOGP(info, "Setting : Chamber {} Sector {} Status {}", chamber, sector, status);
+  const int xMin = 0;
+  const int xMax = sectorWhidth;
+  const int yMin = sectorHeight*sector;
+  const int yMax = sectorHeight*(sector+1);
+  
+  if(status)
+    setPadChannel(tHist, chamber, xMin, xMax, yMin, yMax, status);
+}   
+
 
 
 // chamber [0..6], radiator [0..2]
@@ -49,8 +65,9 @@ void HMPIDTools::setSectorListStatus(vector<std::array<int, 2>> sectorList, bool
   for(const auto& sectorChamber : sectorList)
   {
     const auto& chamber = sectorChamber[0];
-    const auto& sector = sectorChamber[0];
+    const auto& sector = sectorChamber[1];
     setSectorStatus(chamber, sector, status);
+    LOGP(info, "Setting : Chamber {} Sector {} Status {}", chamber, sector, status);
   }
 }
 
@@ -71,7 +88,24 @@ void HMPIDTools::setPadChannel(int chamber, int xLow, int xHigh, int yLow, int y
       }
     }
   }
+}
 
+// Set Pad Channels Off
+void HMPIDTools::setPadChannel(TH2F* tHist, int chamber, int xLow, int xHigh, int yLow, int yHigh, bool status)
+{
+
+  LOGP(info, "x {}-{} y {}-{}; val = {} ", xLow, xHigh, yLow, yHigh, status);
+
+    for (int y = yLow; y < yHigh; y++) {
+      const auto& ind = tHist->GetBinContent(5, y);  
+      //LOGP(info, "x {} y {}; ind = {} ", 5, y, ind);
+      for (int x = 0; x < 160; x++) {
+        channelStatus[chamber][x][y] = status;
+        if(status) { 
+          tHist->Fill(x, y);
+        } 
+      }
+    }
 }
 
 

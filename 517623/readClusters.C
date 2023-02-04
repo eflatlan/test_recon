@@ -128,8 +128,7 @@ int chargeAvgCount[7][160][144] = {{{0}}};
 ClassImp(HMPIDTools);
 class HMPIDTools;
 
-HMPIDTools hmpidTools;
-
+std::unique_ptr<HMPIDTools> hmpidTools = std::make_unique<HMPIDTools>();
 
 
 //void setPadChannel(bool (&padDigOff)[7][160][144], int chamber, int xLow,
@@ -140,10 +139,14 @@ void fillDigMap(vector<Digit> &digits);
 
 void readClusters(int nEvents = 1, bool leadRun = false) {
 
-
-
-  hmpidTools.setSectorListStatus({{0, 2},{0, 3}, {1, 1}, {2, 4}, {4, 0}, {5, 1}, {5, 4}}, false);
-  hmpidTools.setLinkListStatus({{1,0},{5,1}}, false);
+  for(int iCh = 0; iCh < 7; iCh++){
+    for(int iSec = 0; iSec < 7; iSec++){
+      hmpidTools->setSectorStatus(iCh, iSec, true);
+    }
+  }
+ 
+  hmpidTools->setSectorListStatus({{0, 2}, {0, 3}, {1, 1}, {2, 4}, {4, 0}, {5, 1}, {5, 4}}, false);
+  hmpidTools->setLinkListStatus({{1,0},{5,1}}, false);
 
   if (leadRun) {
     trigSort2->SetBins(50, 0, 2000.);
@@ -182,7 +185,7 @@ void readClusters(int nEvents = 1, bool leadRun = false) {
   
 
   // Testing..
-  hmpidTools.setPadChannel(6, 141, 150, 105, 110, false); // chamber, xLow, xHigh, yLow,  yHigh
+  hmpidTools->setPadChannel(6, 141, 150, 105, 110, false); // chamber, xLow, xHigh, yLow,  yHigh
 
   vector<Cluster> clusters;
   vector<Trigger> clusterTriggers;
@@ -215,23 +218,7 @@ void readClusters(int nEvents = 1, bool leadRun = false) {
     auto fName = fileName;
     
     for(auto &c : fName)  c = std::tolower(static_cast<unsigned char>(c));
-    /*
-    std::for_each(fName.begin(), fName.end(), [](char& c)
-    {
-      c = std::tolower(static_cast<unsigned char>(c));
-    }); */ 
 
-    /*
-    std::transform(fName.cbegin(), fName.cend(), fName.cbegin(), [](unsigned char c){
-      return std::tolower(c);
-    }); */
-
-    /*    std::transform(fName.begin(), fName.end(), fName.begin()), static_cast<char>(std::tolower)); / *[](unsigned char c){
-      return std::tolower(c);
-    });*/
-
-
-    
     if(fName.find("hmp") == std::string::npos || fName.find("dig") == std::string::npos)
       continue;
 
@@ -239,8 +226,8 @@ void readClusters(int nEvents = 1, bool leadRun = false) {
 
 
     auto tmp = pathName.substr(0, pathName.find_last_of("\\/"));
-
     auto folderName = tmp.substr(tmp.length() - 6);
+
     fname = stoi(folderName);
     if (folderName.length() == 6) {
       if (std::all_of(folderName.begin(), folderName.end(), ::isdigit)) {
@@ -540,7 +527,7 @@ void readClusters(int nEvents = 1, bool leadRun = false) {
   for (const auto &dig : digits) {
     const auto& digId = dig.getPadID();
 
-    cout << "digit ID : " << digId << endl;
+    //cout << "digit ID : " << digId << endl;
     Digit::pad2Absolute(digId, &module, &padChX, &padChY);
     const auto &charge = dig.getQ();
     if (padDig[module][padChX][padChY] == true) {
@@ -1083,6 +1070,10 @@ void readClusters(int nEvents = 1, bool leadRun = false) {
   canvas[3]->Show();
   canvas[4]->Show();
 
+
+  hmpidTools->drawSectorStatus();
+
+
   sleep_for(5000ms);
 
   // return;
@@ -1159,7 +1150,7 @@ vector<string> dig2Clus(const std::string &fileName, vector<Cluster> &clusters,
                                               trig.getFirstEntry(),
                                           size_t(trig.getNumberOfObjects())};
         const size_t clStart = clusters.size();
-        mRec->Dig2Clu(trigDigits, clusters, mSigmaCut, true); // ef:uncomment
+        //mRec->Dig2Clu(trigDigits, clusters, mSigmaCut, true); // ef:uncomment
         clusterTriggers.emplace_back(trig.getIr(), clStart,
                                      clusters.size() - clStart);
       }
